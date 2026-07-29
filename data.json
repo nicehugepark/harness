@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T16:07:47+09:00",
+  "at": "2026-07-29T16:12:52+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -8,8 +8,8 @@
       "priority": 2,
       "weight": "heavy",
       "created": "2026-07-29 02:06:16+09:00",
-      "updated": "2026-07-29T15:59:04+09:00",
-      "session_ref": "07543f83",
+      "updated": "2026-07-29T16:11:59+09:00",
+      "session_ref": "548ede87",
       "machine": "18f97fd8ca3a",
       "depends_on": [],
       "blocked_on": null,
@@ -25,8 +25,8 @@
       "priority": 2,
       "weight": "heavy",
       "created": "2026-07-29 03:06:16+09:00",
-      "updated": "2026-07-29T15:59:04+09:00",
-      "session_ref": "0818d747",
+      "updated": "2026-07-29T16:11:59+09:00",
+      "session_ref": "6e8b9b81",
       "machine": "18f97fd8ca3a",
       "depends_on": [],
       "blocked_on": null,
@@ -59,419 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "a442036a087b",
-      "ts": "2026-07-29T06:29:37Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "a22e140b-08e6-46ec-87f8-1e6192439613",
-      "data": {
-        "head_ok": false,
-        "head_detail": "응답 머리 표기가 없습니다. 첫 줄에 [측정 시각 · 표시명 · 역할 키] 3요소를 출력하십시오(S§2-20).",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 4,
-          "polite": 3,
-          "ratio": 0.75
-        }
-      },
-      "req": "RQ-20260728T180616Z-ef94bc02",
-      "role": "architect",
-      "_stream": "AU-20260729T062937Z-5bb7fe0d-agent-events.jsonl"
-    },
-    {
-      "id": "c53304f54ac3",
-      "ts": "2026-07-29T06:29:42Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "head_ok": false,
-        "head_detail": "응답 머리 표기가 없습니다. 첫 줄에 [측정 시각 · 표시명 · 역할 키] 3요소를 출력하십시오(S§2-20).",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 5,
-          "polite": 2,
-          "ratio": 0.4
-        }
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T062942Z-5380b971-agent-events.jsonl"
-    },
-    {
-      "id": "88708a13e410",
-      "ts": "2026-07-29T06:29:42Z",
-      "stream": "agent-events",
-      "event": "prompt.submit",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "len": 1394,
-        "digest": "d5181c365f8be801"
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T062942Z-2c6224af-agent-events.jsonl"
-    },
-    {
-      "id": "13bd93b2e440",
-      "ts": "2026-07-29T06:30:05Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "head_ok": false,
-        "head_detail": "응답 머리 표기가 없습니다. 첫 줄에 [측정 시각 · 표시명 · 역할 키] 3요소를 출력하십시오(S§2-20).",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 4,
-          "polite": 2,
-          "ratio": 0.5
-        }
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T063005Z-0e423b73-agent-events.jsonl"
-    },
-    {
-      "id": "c0747f8492ee",
-      "ts": "2026-07-29T06:30:09Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "head_ok": false,
-        "head_detail": "응답 머리 표기가 없습니다. 첫 줄에 [측정 시각 · 표시명 · 역할 키] 3요소를 출력하십시오(S§2-20).",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 6,
-          "polite": 2,
-          "ratio": 0.333
-        }
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T063009Z-1fd3b205-agent-events.jsonl"
-    },
-    {
-      "id": "83c701ae0fa4",
-      "ts": "2026-07-29T06:30:09Z",
-      "stream": "agent-events",
-      "event": "prompt.submit",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "len": 1389,
-        "digest": "58abd15b1e77aab1"
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T063009Z-8fe235b0-agent-events.jsonl"
-    },
-    {
-      "id": "f79ed48f96b0",
-      "ts": "2026-07-29T06:30:25Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "head_ok": false,
-        "head_detail": "응답 머리 표기가 없습니다. 첫 줄에 [측정 시각 · 표시명 · 역할 키] 3요소를 출력하십시오(S§2-20).",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 17,
-          "polite": 8,
-          "ratio": 0.471
-        }
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T063025Z-701fc888-agent-events.jsonl"
-    },
-    {
-      "id": "ae2da598a7a1",
-      "ts": "2026-07-29T06:30:59Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "a22e140b-08e6-46ec-87f8-1e6192439613",
-      "data": {
-        "head_ok": false,
-        "head_detail": "표시명이 이름 레지스트리에 없습니다: 'Claude Code' — 역할 키 단독 표기는 금지입니다",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 6,
-          "polite": 5,
-          "ratio": 0.833
-        }
-      },
-      "req": "RQ-20260728T180616Z-ef94bc02",
-      "role": "architect",
-      "_stream": "AU-20260729T063059Z-95d0c0e4-agent-events.jsonl"
-    },
-    {
-      "id": "250571c73b31",
-      "ts": "2026-07-29T06:30:59Z",
-      "stream": "agent-events",
-      "event": "prompt.submit",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "a22e140b-08e6-46ec-87f8-1e6192439613",
-      "data": {
-        "len": 1386,
-        "digest": "642b786f3c43b238"
-      },
-      "req": "RQ-20260728T180616Z-ef94bc02",
-      "role": "architect",
-      "_stream": "AU-20260729T063059Z-8abced4d-agent-events.jsonl"
-    },
-    {
-      "id": "9c16bb0676fe",
-      "ts": "2026-07-29T06:31:15Z",
-      "stream": "agent-events",
-      "event": "session.ended",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "reason": "other",
-        "req": "RQ-20260728T170616Z-d0bc4127"
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T063115Z-f5738f2e-agent-events.jsonl"
-    },
-    {
-      "id": "08d73bdc300c",
-      "ts": "2026-07-29T06:31:15Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "080b1393-eb43-42d9-9d08-d566a7e9cb7c",
-      "data": {
-        "head_ok": true,
-        "head_detail": "",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 18,
-          "polite": 11,
-          "ratio": 0.611
-        }
-      },
-      "req": "RQ-20260728T170616Z-d0bc4127",
-      "role": "architect",
-      "_stream": "AU-20260729T063115Z-62ad1352-agent-events.jsonl"
-    },
-    {
-      "id": "55cee396d365",
-      "ts": "2026-07-29T06:31:18Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "a22e140b-08e6-46ec-87f8-1e6192439613",
-      "data": {
-        "head_ok": false,
-        "head_detail": "표시명이 이름 레지스트리에 없습니다: 'Claude Code' — 역할 키 단독 표기는 금지입니다",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 20,
-          "polite": 12,
-          "ratio": 0.6
-        }
-      },
-      "req": "RQ-20260728T180616Z-ef94bc02",
-      "role": "architect",
-      "_stream": "AU-20260729T063118Z-e62b5d82-agent-events.jsonl"
-    },
-    {
-      "id": "1b2439ce1235",
-      "ts": "2026-07-29T06:31:54Z",
-      "stream": "agent-events",
-      "event": "batch.run",
-      "plane": "system",
-      "machine": "local",
-      "session": "batch",
-      "data": {
-        "at": "2026-07-29T15:31:49+09:00",
-        "tmp_swept": 0,
-        "untracked_absorbed": [
-          "docs/audit/public/2026/07/AU-20260729T062640Z-8ce8a169-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062924Z-e2bc0190-sched-decisions.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062925Z-0822c180-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062925Z-17ff27b4-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062925Z-55a5728c-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062925Z-f8a32499-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062936Z-56c8632a-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062937Z-5bb7fe0d-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062942Z-2c6224af-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T062942Z-5380b971-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063005Z-0e423b73-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063009Z-1fd3b205-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063009Z-8fe235b0-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063025Z-701fc888-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063059Z-8abced4d-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063059Z-95d0c0e4-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063115Z-62ad1352-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063115Z-f5738f2e-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063118Z-e62b5d82-agent-events.jsonl"
-        ],
-        "commit": {
-          "committed": true,
-          "files": [
-            "docs/audit/public/2026/07/AU-20260729T062640Z-8ce8a169-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062924Z-e2bc0190-sched-decisions.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062925Z-0822c180-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062925Z-17ff27b4-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062925Z-55a5728c-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062925Z-f8a32499-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062936Z-56c8632a-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062937Z-5bb7fe0d-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062942Z-2c6224af-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T062942Z-5380b971-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063005Z-0e423b73-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063009Z-1fd3b205-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063009Z-8fe235b0-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063025Z-701fc888-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063059Z-8abced4d-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063059Z-95d0c0e4-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063115Z-62ad1352-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063115Z-f5738f2e-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063118Z-e62b5d82-agent-events.jsonl",
-            "docs/requests/public/2026/07/RQ-20260728T170616Z-d0bc4127-design-prompt-regeneration.md",
-            "docs/requests/public/2026/07/RQ-20260728T180616Z-ef94bc02-dashboard-design-prompt.md"
-          ],
-          "reason": ""
-        },
-        "index": {
-          "regenerate": false,
-          "records": 7
-        },
-        "mirror": {
-          "copied": 6,
-          "root": "/home/sjpark/harness-backups/mirror"
-        },
-        "notify": {
-          "pending": 1,
-          "sent": 1
-        },
-        "publish": {
-          "pushed": true,
-          "ahead": 1,
-          "reason": ""
-        }
-      },
-      "_stream": "AU-20260729T063154Z-4d967c87-agent-events.jsonl"
-    },
-    {
-      "id": "3c89eebc35c7",
-      "ts": "2026-07-29T06:31:59Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "a22e140b-08e6-46ec-87f8-1e6192439613",
-      "data": {
-        "head_ok": true,
-        "head_detail": "",
-        "gate_applies": true,
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 21,
-          "polite": 13,
-          "ratio": 0.619
-        }
-      },
-      "req": "RQ-20260728T180616Z-ef94bc02",
-      "role": "architect",
-      "_stream": "AU-20260729T063159Z-6299d035-agent-events.jsonl"
-    },
-    {
-      "id": "8a28c2365c0f",
-      "ts": "2026-07-29T06:31:59Z",
-      "stream": "agent-events",
-      "event": "session.ended",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "a22e140b-08e6-46ec-87f8-1e6192439613",
-      "data": {
-        "reason": "other",
-        "req": "RQ-20260728T180616Z-ef94bc02"
-      },
-      "req": "RQ-20260728T180616Z-ef94bc02",
-      "role": "architect",
-      "_stream": "AU-20260729T063159Z-d8681a05-agent-events.jsonl"
-    },
-    {
-      "id": "1258c8f1f73e",
-      "ts": "2026-07-29T06:33:42Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "interactive",
-      "machine": "m-ea155febfb",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "head_ok": true,
-        "head_detail": "",
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 24,
-          "polite": 19,
-          "ratio": 0.792
-        }
-      },
-      "_stream": "AU-20260729T063342Z-c3874f76-agent-events.jsonl"
-    },
-    {
-      "id": "f4284ee1952d",
-      "ts": "2026-07-29T06:34:57Z",
-      "stream": "sched-decisions",
-      "event": "sched.tick",
-      "plane": "system",
-      "machine": "m01-wsl",
-      "session": "tick-5f04d21df40d",
-      "data": {
-        "ts": "2026-07-29T06:34:57Z",
-        "trigger": "periodic",
-        "kill_switch": false,
-        "capacity": {
-          "18f97fd8ca3a": {
-            "cap": 50,
-            "active": 2
-          }
-        },
-        "inputs": [],
-        "decisions": [],
-        "adjudications_filed": [],
-        "idle_defect": false,
-        "schema_ver": "sched/1",
-        "tick_id": "5f04d21df40d"
-      },
-      "_stream": "AU-20260729T063457Z-3f2ffd03-sched-decisions.jsonl"
-    },
     {
       "id": "9f352c2ce9ce",
       "ts": "2026-07-29T06:37:04Z",
@@ -2142,6 +1729,40 @@
       "_stream": "AU-20260729T070502Z-10b430ff-sched-decisions.jsonl"
     },
     {
+      "id": "dcd67ab16525",
+      "ts": "2026-07-29T07:05:47Z",
+      "stream": "agent-events",
+      "event": "agent.turn_end",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "head_ok": true,
+        "head_detail": "",
+        "praise_hit": null,
+        "honorific": {
+          "korean_sentences": 15,
+          "polite": 13,
+          "ratio": 0.867
+        }
+      },
+      "_stream": "AU-20260729T070547Z-57542355-agent-events.jsonl"
+    },
+    {
+      "id": "8334eaad0ce4",
+      "ts": "2026-07-29T07:07:27Z",
+      "stream": "agent-events",
+      "event": "prompt.submit",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "len": 40,
+        "digest": "42a14f79bb5af044"
+      },
+      "_stream": "AU-20260729T070727Z-e29fb9ec-agent-events.jsonl"
+    },
+    {
       "id": "515245313844",
       "ts": "2026-07-29T07:07:47Z",
       "stream": "agent-events",
@@ -2190,22 +1811,393 @@
         ]
       },
       "_stream": "AU-20260729T070747Z-971cad4d-agent-events.jsonl"
+    },
+    {
+      "id": "4e5e434e546d",
+      "ts": "2026-07-29T07:07:59Z",
+      "stream": "agent-events",
+      "event": "agent.turn_end",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "head_ok": true,
+        "head_detail": "",
+        "praise_hit": null,
+        "honorific": {
+          "korean_sentences": 15,
+          "polite": 10,
+          "ratio": 0.667
+        }
+      },
+      "_stream": "AU-20260729T070759Z-fc9c4171-agent-events.jsonl"
+    },
+    {
+      "id": "5e5d57941752",
+      "ts": "2026-07-29T07:07:59Z",
+      "stream": "agent-events",
+      "event": "prompt.submit",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "len": 27,
+        "digest": "b7ac2d66ae78692a"
+      },
+      "_stream": "AU-20260729T070759Z-e4677d7f-agent-events.jsonl"
+    },
+    {
+      "id": "437ca11b062d",
+      "ts": "2026-07-29T07:08:49Z",
+      "stream": "agent-events",
+      "event": "agent.turn_end",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "head_ok": true,
+        "head_detail": "",
+        "praise_hit": null,
+        "honorific": {
+          "korean_sentences": 14,
+          "polite": 11,
+          "ratio": 0.786
+        }
+      },
+      "_stream": "AU-20260729T070849Z-b90f8bb4-agent-events.jsonl"
+    },
+    {
+      "id": "b9e3020f865d",
+      "ts": "2026-07-29T07:09:04Z",
+      "stream": "agent-events",
+      "event": "prompt.submit",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "len": 19,
+        "digest": "042dd13bbf20a35f"
+      },
+      "_stream": "AU-20260729T070904Z-7ea3447b-agent-events.jsonl"
+    },
+    {
+      "id": "7713516a2991",
+      "ts": "2026-07-29T07:09:45Z",
+      "stream": "sched-decisions",
+      "event": "sched.tick",
+      "plane": "system",
+      "machine": "m01-wsl",
+      "session": "tick-58d3f746829e",
+      "data": {
+        "ts": "2026-07-29T07:09:45Z",
+        "trigger": "periodic",
+        "kill_switch": false,
+        "capacity": {
+          "4c2584001050": {
+            "cap": 50,
+            "active": 2
+          },
+          "4f3374f32328": {
+            "cap": 1,
+            "active": 0
+          }
+        },
+        "inputs": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 3,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 2,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          }
+        ],
+        "decisions": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "action": "dispatch",
+            "machine": "4c2584001050",
+            "reason": "dispatched"
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "action": "dispatch",
+            "machine": "4c2584001050",
+            "reason": "dispatched"
+          }
+        ],
+        "adjudications_filed": [],
+        "idle_defect": false,
+        "schema_ver": "sched/1",
+        "tick_id": "58d3f746829e"
+      },
+      "_stream": "AU-20260729T070945Z-9c553093-sched-decisions.jsonl"
+    },
+    {
+      "id": "99bb81320a05",
+      "ts": "2026-07-29T07:10:32Z",
+      "stream": "agent-events",
+      "event": "session.ended",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "de52c85c-f265-4343-9b70-f49a7f58250f",
+      "data": {
+        "reason": "other",
+        "req": "RQ-20260728T170616Z-d0bc4127"
+      },
+      "req": "RQ-20260728T170616Z-d0bc4127",
+      "role": "architect",
+      "_stream": "AU-20260729T071032Z-cf43ca2d-agent-events.jsonl"
+    },
+    {
+      "id": "d10aaa337da2",
+      "ts": "2026-07-29T07:10:34Z",
+      "stream": "agent-events",
+      "event": "session.ended",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "d4d4d5bb-a23c-43da-b489-796547eb5810",
+      "data": {
+        "reason": "other",
+        "req": "RQ-20260728T180616Z-ef94bc02"
+      },
+      "req": "RQ-20260728T180616Z-ef94bc02",
+      "role": "architect",
+      "_stream": "AU-20260729T071034Z-7eaf5196-agent-events.jsonl"
+    },
+    {
+      "id": "63b8f3749396",
+      "ts": "2026-07-29T07:10:47Z",
+      "stream": "sched-decisions",
+      "event": "sched.tick",
+      "plane": "system",
+      "machine": "m01-wsl",
+      "session": "tick-a4176d8df17f",
+      "data": {
+        "ts": "2026-07-29T07:10:47Z",
+        "trigger": "periodic",
+        "kill_switch": false,
+        "capacity": {
+          "18f97fd8ca3a": {
+            "cap": 50,
+            "active": 2
+          }
+        },
+        "inputs": [],
+        "decisions": [],
+        "adjudications_filed": [],
+        "idle_defect": false,
+        "schema_ver": "sched/1",
+        "tick_id": "a4176d8df17f"
+      },
+      "_stream": "AU-20260729T071047Z-a61a3912-sched-decisions.jsonl"
+    },
+    {
+      "id": "3c5cc740b0cf",
+      "ts": "2026-07-29T07:11:59Z",
+      "stream": "sched-decisions",
+      "event": "sched.tick",
+      "plane": "system",
+      "machine": "m01-wsl",
+      "session": "tick-11da2a16639b",
+      "data": {
+        "ts": "2026-07-29T07:11:59Z",
+        "trigger": "periodic",
+        "kill_switch": false,
+        "capacity": {
+          "18f97fd8ca3a": {
+            "cap": 50,
+            "active": 2
+          }
+        },
+        "inputs": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 3,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 2,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          }
+        ],
+        "decisions": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "action": "dispatch",
+            "machine": "18f97fd8ca3a",
+            "reason": "dispatched"
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "action": "dispatch",
+            "machine": "18f97fd8ca3a",
+            "reason": "dispatched"
+          }
+        ],
+        "adjudications_filed": [],
+        "idle_defect": false,
+        "schema_ver": "sched/1",
+        "tick_id": "11da2a16639b"
+      },
+      "_stream": "AU-20260729T071159Z-c5432aae-sched-decisions.jsonl"
+    },
+    {
+      "id": "42be308ceccb",
+      "ts": "2026-07-29T07:11:59Z",
+      "stream": "agent-events",
+      "event": "session.start",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "9e6d0fd6-8af4-4322-a8d0-a51ac0ee4948",
+      "data": {
+        "trigger": "startup",
+        "identity_ok": true
+      },
+      "req": "RQ-20260728T180616Z-ef94bc02",
+      "role": "architect",
+      "_stream": "AU-20260729T071159Z-f07fdcc4-agent-events.jsonl"
+    },
+    {
+      "id": "ac09b56616af",
+      "ts": "2026-07-29T07:11:59Z",
+      "stream": "agent-events",
+      "event": "session.start",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "8d7e41f5-812f-4934-989f-18bf698a9bc9",
+      "data": {
+        "trigger": "startup",
+        "identity_ok": true
+      },
+      "req": "RQ-20260728T170616Z-d0bc4127",
+      "role": "architect",
+      "_stream": "AU-20260729T071159Z-8b0c6080-agent-events.jsonl"
+    },
+    {
+      "id": "99b7cff54170",
+      "ts": "2026-07-29T07:12:00Z",
+      "stream": "agent-events",
+      "event": "prompt.submit",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "8d7e41f5-812f-4934-989f-18bf698a9bc9",
+      "data": {
+        "len": 915,
+        "digest": "e0a1ada02679a0f3"
+      },
+      "req": "RQ-20260728T170616Z-d0bc4127",
+      "role": "architect",
+      "_stream": "AU-20260729T071200Z-2cdfa45b-agent-events.jsonl"
+    },
+    {
+      "id": "04d66cb7d243",
+      "ts": "2026-07-29T07:12:00Z",
+      "stream": "agent-events",
+      "event": "prompt.submit",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "9e6d0fd6-8af4-4322-a8d0-a51ac0ee4948",
+      "data": {
+        "len": 912,
+        "digest": "dd61a38948cab297"
+      },
+      "req": "RQ-20260728T180616Z-ef94bc02",
+      "role": "architect",
+      "_stream": "AU-20260729T071200Z-324e503b-agent-events.jsonl"
+    },
+    {
+      "id": "318d8716ffe5",
+      "ts": "2026-07-29T07:12:52Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "oversize": true,
+        "size": 6052,
+        "digest": "baad4d25e9b6a494",
+        "spill_ref": "docs/audit/public/2026/07/spill/318d8716ffe5.json"
+      },
+      "_stream": "AU-20260729T071252Z-bd7f0ecc-agent-events.jsonl"
+    },
+    {
+      "id": "e43277d30993",
+      "ts": "2026-07-29T07:12:52Z",
+      "stream": "agent-events",
+      "event": "batch.defect",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "missing": [
+          "docs/audit/public/2026/07/AU-20260729T065551Z-8c3ebe53-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065556Z-0c2c4524-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065556Z-6931ccc8-sched-decisions.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065556Z-6d14cdec-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065557Z-4c13cbda-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065557Z-f22f910a-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065606Z-8205cf2c-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065608Z-d111cdff-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065610Z-25daf4c2-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065610Z-9c490f1d-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065614Z-25679eec-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065614Z-638ef00a-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065622Z-1907c264-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065622Z-bce945c0-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065627Z-097f81e8-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065627Z-5cc89b47-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065736Z-a42713ad-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065736Z-aed6d4f5-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065744Z-8f1f2dd0-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065811Z-5de0c95a-agent-events.jsonl"
+        ]
+      },
+      "_stream": "AU-20260729T071252Z-bd7f0ecc-agent-events.jsonl"
     }
   ],
   "sessions": [
     {
-      "pid": "896140",
-      "elapsed": "08:43",
+      "pid": "943286",
+      "elapsed": "00:52",
       "req": "RQ-20260728T170616Z-d0bc4127-design-prompt-regeneration.md\","
     },
     {
-      "pid": "896143",
-      "elapsed": "08:43",
+      "pid": "943289",
+      "elapsed": "00:52",
       "req": "RQ-20260728T180616Z-ef94bc02-dashboard-design-prompt.md\","
     }
   ],
   "defects": [
-    "미보존 문서 51건",
+    "미보존 문서 61건",
     "미추적 2건"
   ],
   "notify_pending": 0,
