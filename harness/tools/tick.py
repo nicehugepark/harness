@@ -168,8 +168,19 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
         "  args = " + json.dumps({"ledger_path": launch["ledger_path"],
                                   "baseline_ref": launch["baseline_ref"],
                                   "stage": stage}, ensure_ascii=False) + "\n\n"
-        "워크플로가 끝나면 반환값을 그대로 보고하고 세션을 끝냅니다. 워크플로가 "
-        "실패하면 실패를 그대로 보고하십시오 — 우회 경로를 만들지 마십시오."
+        "**Workflow 는 기본이 백그라운드입니다.** 호출하고 '완료 알림을 "
+        "기다립니다'라고 쓰면 이 턴이 끝나고 세션이 죽어 워크플로도 함께 "
+        "죽습니다(실사고 2026-07-29T07:10 — 그렇게 두 번 죽었습니다).\n"
+        "그래서 호출 직후 **같은 턴 안에서** 완료까지 기다리십시오:\n"
+        "  1) Workflow 반환값의 transcriptDir(또는 runId) 를 받습니다.\n"
+        "  2) Bash 로 그 디렉토리의 journal.jsonl 을 60초 간격으로 조회하며, "
+        "마지막 레코드가 completed/failed 가 될 때까지 반복합니다. "
+        "예: `for i in $(seq 1 90); do tail -1 <dir>/journal.jsonl; sleep 60; done` "
+        "형태로 **한 번의 Bash 호출 안에서** 대기하고, 완료 문자열이 보이면 "
+        "빠져나옵니다.\n"
+        "  3) 완료를 관측한 뒤에만 반환값을 보고하고 턴을 끝냅니다.\n"
+        "워크플로가 실패하면 실패를 그대로 보고하십시오 — 우회 경로를 만들지 "
+        "마십시오."
     )
     if machine.get("transport") == "ssh":
         return False, ("원격 dispatch 는 원격 실행 루트에 하네스가 설치돼 있어야 "
