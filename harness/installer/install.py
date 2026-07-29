@@ -35,6 +35,14 @@ PHASES = ["planned", "interviewed", "backed_up", "reset_done", "installed",
           "verified", "committed"]
 TERMINAL = {"committed", "rolled_back", "failed_dirty"}
 
+# E§2.4.3 의 의사결정 상신에 대한 **의사결정권자 응답**(2026-07-29):
+# 설치기는 초기화하지 않는다. 개인이 필요할 때 직접 한다.
+# 근거 — 파괴적 조작의 기본값은 보존이고, 소거의 이득(간섭 제거)보다 손실
+# (사용자 원본 소실 위험 · 신뢰 손상)이 크다는 판단이다. `reset-managed` 는
+# 명시 선택으로 남고 `reset-full` 은 여전히 결정 문서 없이는 거부된다.
+DEFAULT_RESET_MODE = "reset-none"
+RESET_MODES = ["reset-none", "reset-managed", "reset-full", "incremental"]
+
 
 # ══ 저널 (E§2.10) ═══════════════════════════════════════════════
 class Journal:
@@ -521,8 +529,35 @@ def is_harness_managed(path: pathlib.Path, manifest: dict | None) -> bool:
         return False
 
 
+def find_orphans(root, profile, plan) -> list:
+    """배치 표면에 있으나 현 배치 계획에 없는 **하네스 관리물**.
+
+    초기화를 하지 않으면 로스터에서 빠진 자산이 남는다. 지우지는 않되
+    보이게 한다 — 침묵하면 배치본과 표가 갈린 사실을 아무도 모르고,
+    그것이 "나열을 감시하는 장치가 또 필요해지는" 경로다(S§10-7).
+    """
+    planned = {str(p["dest"]) for p in plan}
+    orphans = []
+    for base_rel in (profile["dest"]["agents"], profile["dest"]["skills"],
+                     profile["dest"]["hooks"]):
+        base = root / base_rel
+        if not base.exists():
+            continue
+        for f in sorted(base.rglob("*")):
+            if not f.is_file() or str(f) in planned:
+                continue
+            try:
+                if MANAGED_MARK in f.read_text(encoding="utf-8", errors="ignore"):
+                    orphans.append(f)
+            except OSError:
+                pass
+    return orphans
+
+
 def reset(root, profile, journal, scope, mode, manifest) -> int:
-    if mode == "incremental":
+    if mode in ("incremental", "reset-none"):
+        journal.write(phase="reset_done", step=mode, action="skipped",
+                      outcome="ok", detail="초기화하지 않는다 — 의사결정권자 확정")
         return 0
     if mode == "reset-full":
         raise SystemExit(
@@ -760,7 +795,7 @@ def cmd_install(args) -> int:
     manifest_path = root / "config/install/installed-manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) \
         if manifest_path.exists() else None
-    if manifest and mode == "install":
+    if manifest and mode == "reset-none":
         mode = "incremental"
         j.mode = mode
 
@@ -815,8 +850,7 @@ def cmd_install(args) -> int:
     # ── 초기화 → 배치 ───────────────────────────────────────────
     try:
         j.enter("reset_done", "reset")
-        reset(root, profile, j, scope, mode if mode != "install" else "reset-managed",
-              manifest)
+        reset(root, profile, j, scope, mode, manifest)
 
         j.enter("installed", "deploy")
         plan = derive_plan(root, profile, plat)
@@ -848,7 +882,7 @@ def cmd_install(args) -> int:
         "installer_version": "0.1.0", "transaction_id": txn,
         "installed_at": clock.iso_local(), "machine_id": machine_id,
         "platform": plat, "snapshot_id": snap.name,
-        "reset_mode": mode if mode != "install" else "reset-managed",
+        "reset_mode": mode,
         "assets": [{"asset_id": p["asset_id"], "kind": p["kind"],
                     "version": p["decl"]["version"], "src_hash": p["src_hash"],
                     "dest_path": str(p["dest"]),
@@ -888,6 +922,13 @@ def cmd_install(args) -> int:
           f"검증 불가 {vres['unverifiable']}")
     if conflicts:
         print(f"  보류        : {len(conflicts)}건 (사용자 커스텀 보존 — 덮지 않음)")
+    orphans = find_orphans(root, profile, plan)
+    if orphans:
+        print(f"  고아 자산   : {len(orphans)}건 — 표에 없는 관리물이 배치 표면에 "
+              f"남아 있습니다. 초기화하지 않는 것이 확정 동작이므로 지우지 않았고,")
+        print(f"                제거하려면 --mode reset-managed 로 실행하십시오.")
+        for o in orphans[:5]:
+            print(f"                {o}")
     return 0
 
 
@@ -963,8 +1004,8 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("install")
-    p.add_argument("--mode", default="install",
-                   choices=["install", "reset-managed", "reset-full", "incremental"])
+    p.add_argument("--mode", default=DEFAULT_RESET_MODE, choices=RESET_MODES,
+                   help="기본은 reset-none — 설치기는 초기화하지 않는다")
     p.add_argument("--platform", default=None)
     p.add_argument("--alias", default=None)
     p.add_argument("--names", default=None, help="role_key→표시명 JSON 파일")

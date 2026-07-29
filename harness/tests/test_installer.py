@@ -388,3 +388,40 @@ def test_incremental_still_preserves_truly_foreign_files():
                                      manifest={"assets": []})
     assert any(c["asset_id"] == target["asset_id"] for c in conflicts)
     assert target["dest"].read_text("utf-8") == "사용자가 손으로 쓴 정의\n"
+
+
+# ── 소유자 결정: 초기화하지 않는다 (E§2.4.3 상신에 대한 응답) ────
+def test_default_reset_mode_is_none():
+    """의사결정권자 확정(2026-07-29): 설치기는 초기화하지 않는다.
+    개인이 필요할 때 직접 한다. reset-managed 는 명시 선택으로만 남는다."""
+    assert I.DEFAULT_RESET_MODE == "reset-none"
+
+
+def test_reset_none_deletes_nothing():
+    lab = _lab()
+    prof = _profile(lab)
+    j = I.Journal(lab, "t-none", "reset-none")
+    scope = I.Scope(lab, prof, j)
+    plan = I.derive_plan(lab, prof, "linux")
+    I.apply_plan(lab, plan, j, scope, incremental=False)
+    before = sorted(str(p) for p in (lab / ".claude").rglob("*") if p.is_file())
+    assert I.reset(lab, prof, j, scope, "reset-none", None) == 0
+    after = sorted(str(p) for p in (lab / ".claude").rglob("*") if p.is_file())
+    assert before == after
+
+
+def test_orphan_assets_are_reported_not_deleted():
+    """초기화를 하지 않으면 로스터에서 빠진 자산이 남는다. 지우지 않되
+    **보이게** 한다 — 침묵하면 배치본과 표가 갈린 것을 아무도 모른다."""
+    lab = _lab()
+    prof = _profile(lab)
+    j = I.Journal(lab, "t-orph", "reset-none")
+    scope = I.Scope(lab, prof, j)
+    plan = I.derive_plan(lab, prof, "linux")
+    I.apply_plan(lab, plan, j, scope, incremental=False)
+    stale = lab / ".claude/agents/removed-role.md"
+    stale.write_text(f"---\ndeclaration:\n  managed_mark: {I.MANAGED_MARK}\n---\n",
+                     encoding="utf-8")
+    orphans = I.find_orphans(lab, prof, plan)
+    assert str(stale) in [str(o) for o in orphans]
+    assert stale.exists()
