@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T15:37:04+09:00",
+  "at": "2026-07-29T15:42:14+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,20 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "adf8fd0690f2",
-      "ts": "2026-07-29T05:46:52Z",
-      "stream": "agent-events",
-      "event": "session.start",
-      "plane": "interactive",
-      "machine": "m-ea155febfb",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "trigger": "compact",
-        "identity_ok": true
-      },
-      "_stream": "AU-20260729T054652Z-22184c58-agent-events.jsonl"
-    },
     {
       "id": "049b0d0e3c40",
       "ts": "2026-07-29T05:49:45Z",
@@ -2048,6 +2034,47 @@
         }
       },
       "_stream": "AU-20260729T063704Z-15ecb97c-agent-events.jsonl"
+    },
+    {
+      "id": "9481725ab5e4",
+      "ts": "2026-07-29T06:42:14Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T15:42:09+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T063704Z-15ecb97c-agent-events.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T063704Z-15ecb97c-agent-events.jsonl"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 7
+        },
+        "mirror": {
+          "copied": 2,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": true,
+          "ahead": 1,
+          "reason": ""
+        }
+      },
+      "_stream": "AU-20260729T064214Z-ac999d5b-agent-events.jsonl"
     }
   ],
   "sessions": [],
