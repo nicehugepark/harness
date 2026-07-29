@@ -900,7 +900,8 @@ def verify(root, profile, plan, journal, clean_home: bool,
             capture_output=True, text=True, cwd=str(root), timeout=300,
             env={**os.environ, "HARNESS_ROOT": str(root),
                  "HARNESS_LIB": str(root / "harness/lib"),
-                 "HARNESS_PLANE": "interactive", "HARNESS_ROLE": "lead"})
+                 # 프로브는 에이전트 응답이 아니다 — system 평면
+                 "HARNESS_PLANE": "system"})
         res["axes"]["A1_headless"] = proc.returncode == 0
         after = set((root / "docs/audit").rglob("*.jsonl"))
         started = False

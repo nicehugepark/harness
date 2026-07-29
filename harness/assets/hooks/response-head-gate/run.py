@@ -48,10 +48,12 @@ def main():
     try:
         w = envelope.Writer(root_dir=root, stream="agent-events", identity=ident)
         w.append("agent.turn_end", {"head_ok": ok, "head_detail": why[:200],
+                                    "gate_applies": H.head_gate_applies(ident),
                                     "praise_hit": praise, "honorific": honor})
     except Exception:
         pass
-    if not block:
+    applies = H.head_gate_applies(ident)
+    if not block and applies:
         if praise:
             H.block_stop(f"판정·리뷰 구조화 필드에 상찬 어휘가 있습니다: {praise!r}. "
                          f"사실·행동·근거로 다시 쓰십시오(S§2-19).")

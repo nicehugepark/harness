@@ -182,6 +182,19 @@ HEAD_RE = re.compile(r"^\s*\[\s*([0-9T:\-+.Z]{19,32})\s*·\s*([^·\]]+?)\s*·\s*
 DRIFT_REFERENCE = "stop-time"
 
 
+def head_gate_applies(identity: dict) -> bool:
+    """머리 표기 게이트의 **적용 대상** 판정.
+
+    `system` 평면은 요청에 속하지 않는 발신원(설치 검증 프로브·리소스 프로브)이고
+    사람 대면 응답이 아니다. 'ok' 한 줄을 내는 프로브에 머리 표기를 요구하면
+    프로브가 차단되고 그 차단이 검증 축 A1 을 깨뜨린다 — 판정 대상이 아닌 것을
+    판정하면 오차단이 된다(실측 2026-07-29T03:51).
+
+    면제는 **판정 면제이지 기록 면제가 아니다** — 관측은 그대로 남긴다.
+    """
+    return identity.get("plane") != "system"
+
+
 def check_head(text: str, *, registry_names: set[str], role_keys: set[str],
                drift_cap_s: int, now=None, turn_started_at=None,
                injected_at=None) -> tuple[bool, str]:

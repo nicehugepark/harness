@@ -160,3 +160,21 @@ def test_head_time_in_the_future_is_blocked():
 def test_reference_point_is_stop_time_not_turn_start():
     """기준점이 무엇인지를 계약으로 고정한다 — 이 값이 바뀌면 판정이 바뀐다."""
     assert H.DRIFT_REFERENCE == "stop-time"
+
+
+def test_system_plane_probe_is_not_subject_to_the_head_gate():
+    """설치 검증 프로브는 **사람 대면 응답이 아니다.** 'ok' 한 줄을 내는 세션에
+    머리 표기를 요구하면 프로브가 차단되고, 그 차단이 검증 축 A1 을 깨뜨린다.
+
+    실측 2026-07-29T03:51: 프로브 세션의 turn_end 에 head_ok=false 가 기록됐고
+    사유는 '역할 키가 로스터 밖'이었다 — 프로브의 응답을 에이전트 응답으로
+    판정한 것이다. 판정 대상이 아닌 것을 판정하면 오차단이 된다.
+    """
+    assert H.head_gate_applies({"plane": "workflow"}) is True
+    assert H.head_gate_applies({"plane": "interactive"}) is True
+    assert H.head_gate_applies({"plane": "system"}) is False
+
+
+def test_system_plane_still_records_the_observation():
+    """면제는 판정 면제이지 기록 면제가 아니다 — 침묵과 무위반을 구별한다."""
+    assert H.head_gate_applies({"plane": "system"}) is False
