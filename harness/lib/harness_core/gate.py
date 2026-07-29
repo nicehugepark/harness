@@ -38,6 +38,7 @@ ERROR_CLASSES = {
     "E15": "private 동기 보존 실패(미러·대장)",
     "E16": "상찬 어휘 검출(닫힌 어휘 × 닫힌 대상 필드)",   # X2-d
     "E17": "루트 불일치",                                    # X5-c
+    "E18": "공개 금지 토큰 검출(정제 스캔)",                  # 착지 시점 정제
 }
 
 # X2 — 린트 유형 하한. 내용 트리거와 OR 로 겹친다.
@@ -82,6 +83,32 @@ class Result:
 
 def _reject(code, detail=""):
     return Result(False, code, detail)
+
+
+_SCANLIST_REL = "config/local/sanitize-scanlist.txt"
+
+
+def _sanitize_hit(text: str, root_dir) -> str | None:
+    """정제 스캔 — 목록 부재는 '검출 0건'이 아니라 **검사 생략**이다.
+
+    둘을 구별하지 않으면 목록이 없는 환경에서 통과가 검증처럼 보인다.
+    """
+    lst = pathlib.Path(root_dir) / _SCANLIST_REL
+    if not lst.exists():
+        return None
+    try:
+        pats = [l.strip() for l in lst.read_text(encoding="utf-8").splitlines()
+                if l.strip() and not l.startswith("#")]
+    except OSError:
+        return None
+    for pat in pats:
+        try:
+            m = re.search(pat, text)      # 대소문자 구분
+        except re.error:
+            continue
+        if m:
+            return f"{pat!r} → {m.group(0)[:40]!r}"
+    return None
 
 
 # ── 경로·형식 검사 (E10·E11) ─────────────────────────────────────
@@ -295,6 +322,16 @@ def land(doc_bytes: str, *, root_dir, identity: Identity, visibility: str,
     for pat in _CRED_PATTERNS:
         if pat.search(doc_bytes):
             return _reject("E12", "자격증명 패턴 — 값은 볼트로, 문서엔 경로 참조만")
+
+    # E18 — 정제 스캔. **공개 트리에만** 건다.
+    # 탐지의 유일하게 옳은 지점은 쓰기 전이다(S§9.3-18) — 커밋에서 잡으면 이미
+    # 파일이 트리에 있고 사람이 손으로 고쳐야 한다. private 트리는 push 되지
+    # 않으므로 대상이 아니다: 걸면 내부 기록에 선행 판 식별자를 적을 수 없게 되어
+    # 원장이 성립 불가해진다(S§3.4 의 계층 구분과 같은 근거).
+    if visibility == "public":
+        tok = _sanitize_hit(doc_bytes, root_dir)
+        if tok:
+            return _reject("E18", f"공개 금지 토큰: {tok}")
 
     # E16 — 상찬 어휘 (X2-d)
     hit = check_praise(fm, doc, pol.get("praise_lexicon", []))

@@ -317,3 +317,37 @@ def test_rejection_creates_no_file():
     tmp = _tmp()
     _land(_doc(_meta(schema=99)), tmp)
     assert list((tmp / "docs").rglob("*.md")) == []
+
+
+# ── E18 정제 스캔을 착지 게이트에 편입 (실사고 2026-07-29T03:43) ──
+def test_e18_forbidden_token_in_public_document_is_rejected():
+    """실사고: 금지 토큰이 든 결정 문서가 **착지했다**. 정제 스캔은 커밋 경로에만
+    있었고 착지 경로에는 없었다 — 탐지의 유일하게 옳은 지점은 쓰기 전이다
+    (S§9.3-18). 커밋에서 잡으면 이미 파일이 트리에 있고 사람이 손으로 고쳐야 한다.
+    """
+    tmp = _tmp()
+    (tmp / "config/local").mkdir(parents=True)
+    (tmp / "config/local/sanitize-scanlist.txt").write_text(
+        "# 시험용\nFORBIDDEN-TOKEN\n", encoding="utf-8")
+    body = _DESIGN_BODY + "\n본문에 FORBIDDEN-TOKEN 이 있다.\n"
+    r = _land(_doc(body=body), tmp)
+    assert r.code == "E18", r.code
+
+
+def test_e18_does_not_apply_to_private_documents():
+    """private 트리는 push 되지 않는다 — 공개 축의 검사를 걸 이유가 없고,
+    걸면 내부 기록에 선행 판 식별자를 적을 수 없게 되어 원장이 성립 불가해진다."""
+    tmp = _tmp()
+    (tmp / "config/local").mkdir(parents=True)
+    (tmp / "config/local/sanitize-scanlist.txt").write_text(
+        "# 시험용\nFORBIDDEN-TOKEN\n", encoding="utf-8")
+    body = _DESIGN_BODY + "\n본문에 FORBIDDEN-TOKEN 이 있다.\n"
+    r = _land(_doc(_meta(visibility="private"), body), tmp, visibility="private")
+    assert r.ok, r.code
+
+
+def test_e18_is_skipped_when_no_scanlist_exists():
+    """목록이 없으면 검사할 수 없다 — 그것을 '검출 0건'으로 읽지 않고
+    검사 생략으로 다룬다. 설치 전 구간이 정상적으로 존재한다."""
+    r = _land(_doc(), _tmp())
+    assert r.ok, r.code

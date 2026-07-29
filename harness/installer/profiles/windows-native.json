@@ -20,5 +20,10 @@
   "hook_invoke": "python {script}",
   "path_style": "windows",
   "unmeasured": "이 플랫폼의 훅 실행 셸·rename 원자성은 이 머신에서 잴 수 없다(E§9-M4·M9a) — 해당 플랫폼에서 재기록해야 한다",
-  "platform": "windows-native"
+  "platform": "windows-native",
+  "bin_paths": [
+    "~/.local/bin",
+    "~/.npm-global/bin",
+    "/usr/local/bin"
+  ]
 }

@@ -41,6 +41,19 @@ TERMINAL = {"committed", "rolled_back", "failed_dirty"}
 # (사용자 원본 소실 위험 · 신뢰 손상)이 크다는 판단이다. `reset-managed` 는
 # 명시 선택으로 남고 `reset-full` 은 여전히 결정 문서 없이는 거부된다.
 DEFAULT_RESET_MODE = "reset-none"
+
+# E§2.4.2 reset-full — 설정 표면 전체 소거. 아래 목록은 **어느 모드에서도**
+# 소거 대상이 아니다: 플랫폼 런타임 상태와 사용자 데이터이지 하네스 자산이 아니다.
+# 목록을 좁게 유지하는 것이 요점이다 — 넓히면 "전체 소거"가 이름뿐이 되고,
+# 좁히면 사용자 데이터가 날아간다. 판별 기준은 "하네스가 만들었는가"다.
+RESET_FULL_PRESERVE = {
+    "projects", "sessions", "history.jsonl", ".credentials.json", "plugins",
+    "backups", "session-env", "shell-snapshots", "tasks", "downloads", "cache",
+    "ide", "statsig", "todos", "file-history", "paste-cache", "remote",
+    "mcp-needs-auth-cache.json", "settings.local.json", ".last-update-result.json",
+}
+# 결정 문서가 이 표식을 담고 있어야 reset-full 분기에 진입할 수 있다.
+RESET_FULL_ALLOW_MARK = "reset-full-allowed/v1"
 RESET_MODES = ["reset-none", "reset-managed", "reset-full", "incremental"]
 
 
@@ -175,6 +188,42 @@ def derive_limits(probe: dict, formulas: dict) -> dict:
         "inputs": {"mem_available_mb": avail, "cpu_logical": cpu},
         "status": "잠정 — 파라미터 초깃값이 미검증이다(E§9-M11 실측으로 보정)",
     }
+
+
+def machine_identity(node: str, machine: str) -> str:
+    """같은 호스트에서는 설치를 몇 번 해도 같은 ID 다 — ID 가 바뀌면 편성
+    레코드가 매 설치마다 늘어나고 어느 것이 정본인지 판정 불가가 된다."""
+    return hashlib.sha256(f"{node}|{machine}".encode()).hexdigest()[:12]
+
+
+def merge_limits(derived: dict, existing: dict | None) -> dict:
+    """B§4.4 — 사람 오버라이드가 판정식을 선점한다.
+
+    산출값은 버리지 않고 `formula_derived_cap` 으로 **병기**한다. 덮는 것과
+    숨기는 것은 다른 실패다 — 병기하면 괴리가 표면에 남아 보정 신호가 된다.
+    """
+    out = dict(derived)
+    ov = ((existing or {}).get("limits") or {}).get("override")
+    if ov and ov.get("value") is not None:
+        out["formula_derived_cap"] = derived.get("concurrency_cap")
+        out["concurrency_cap"] = ov["value"]
+        out["override"] = ov
+        out["status"] = ("사람 오버라이드 — 산식값과 병기해 괴리를 표면에 남긴다")
+    return out
+
+
+def find_cli(name: str, profile: dict) -> str | None:
+    """플랫폼 CLI 탐색. 비대화 셸의 PATH 에 없는 경우가 정상적으로 존재한다
+    (실측: 원격의 claude 는 ~/.local/bin 에 있고 비대화 PATH 에는 없다).
+    찾지 못하면 검증 축이 '검증 불가'가 되고 그것은 통과가 아니다."""
+    found = shutil.which(name)
+    if found:
+        return found
+    for d in (profile.get("bin_paths") or []):
+        cand = pathlib.Path(os.path.expanduser(d)) / name
+        if cand.exists() and os.access(cand, os.X_OK):
+            return str(cand)
+    return None
 
 
 # ══ 배치 계획 파생 (E§2.5.2) ════════════════════════════════════
@@ -529,6 +578,90 @@ def is_harness_managed(path: pathlib.Path, manifest: dict | None) -> bool:
         return False
 
 
+def reset_full_plan(surface: pathlib.Path) -> dict:
+    """소거·보존 대상을 **삭제 전에** 전건 열거한다.
+
+    E§2.4.2 는 "삭제 예정 목록을 전건 열거해 제시하고, 사용자가 그 목록을 본
+    상태에서 승인해야 진행한다"를 요구한다. 열거와 삭제를 같은 함수에 두면
+    그 순서가 코드로 보장되지 않으므로 분리한다 — 이 함수는 아무것도 지우지 않는다.
+    """
+    delete, preserve = [], []
+    if not surface.exists():
+        return {"delete": [], "preserve": [], "settings": None}
+    for child in sorted(surface.iterdir()):
+        if child.name in RESET_FULL_PRESERVE:
+            preserve.append(child)
+            continue
+        if child.name == "settings.json":
+            preserve.append(child)          # 파일은 남기고 훅 등록만 걷는다
+            continue
+        if child.is_dir():
+            delete += [f for f in sorted(child.rglob("*")) if f.is_file()]
+            delete.append(child)
+        else:
+            delete.append(child)
+    return {"delete": delete, "preserve": preserve,
+            "settings": surface / "settings.json"}
+
+
+def reset_full_allowed(root: pathlib.Path, *, acknowledged: bool) -> tuple[bool, str]:
+    """3전제 중 둘을 검사한다(백업 완결은 상태기계가 별도로 강제).
+
+    ①결정 문서의 허용 레코드 ②삭제 예정 목록 열람 승인.
+    둘 다 없으면 분기 진입 자체가 불가능하다 — 코드 경로가 하나뿐이다.
+    """
+    found = None
+    base = root / "docs" / "decisions"
+    if base.exists():
+        for f in base.rglob("DN-*.md"):
+            try:
+                if RESET_FULL_ALLOW_MARK in f.read_text(encoding="utf-8"):
+                    found = f
+                    break
+            except OSError:
+                continue
+    if not found:
+        return False, (f"결정 문서에 허용 레코드({RESET_FULL_ALLOW_MARK})가 없다 — "
+                       f"reset-full 은 결정 착지 전에는 실행 불가다")
+    if not acknowledged:
+        return False, "삭제 예정 목록 열람 승인이 없다"
+    return True, str(found.relative_to(root))
+
+
+def reset_full_apply(surface: pathlib.Path, journal: "Journal") -> int:
+    """소거 실행. 등록 표면(훅)을 먼저 걷고 실행체를 나중에 지운다."""
+    plan = reset_full_plan(surface)
+    removed = 0
+    settings = plan["settings"]
+    if settings and settings.exists():
+        try:
+            cfg = json.loads(settings.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            cfg = {}
+        if "hooks" in cfg:
+            cfg.pop("hooks")
+            tmp = settings.with_suffix(".tmp")
+            tmp.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n",
+                           encoding="utf-8")
+            os.replace(tmp, settings)
+            journal.write(phase="reset_done", step="strip-hooks", action="write",
+                          target=settings, outcome="ok")
+    for p in plan["delete"]:
+        try:
+            if p.is_file():
+                p.unlink()
+                removed += 1
+            elif p.is_dir():
+                shutil.rmtree(p, ignore_errors=True)
+        except OSError as exc:
+            journal.write(phase="reset_done", action="delete", target=p,
+                          outcome="fail", detail=str(exc))
+    journal.write(phase="reset_done", step="reset-full", action="delete",
+                  outcome="ok",
+                  detail=f"{removed}건 소거 · 보존 {len(plan['preserve'])}항목")
+    return removed
+
+
 def find_orphans(root, profile, plan) -> list:
     """배치 표면에 있으나 현 배치 계획에 없는 **하네스 관리물**.
 
@@ -560,9 +693,15 @@ def reset(root, profile, journal, scope, mode, manifest) -> int:
                       outcome="ok", detail="초기화하지 않는다 — 의사결정권자 확정")
         return 0
     if mode == "reset-full":
-        raise SystemExit(
-            "reset-full 은 결정 문서의 허용 레코드 + foreign 삭제 목록 열람 승인이 "
-            "전제다(E§2.4.2). 결정이 착지하기 전에는 reset-managed 만 실행 가능하다.")
+        ok, why = reset_full_allowed(root, acknowledged=bool(
+            getattr(reset, "_acknowledged", False)))
+        if not ok:
+            raise SystemExit(f"reset-full 거부 — {why} (E§2.4.2)")
+        surface = pathlib.Path(os.path.expanduser(
+            profile.get("user_home") or "~")) / ".claude"
+        n = reset_full_apply(surface, journal)
+        n += reset_full_apply(root / ".claude", journal)
+        return n
     removed = 0
     for base_rel in (profile["dest"]["agents"], profile["dest"]["skills"],
                      profile["dest"]["hooks"]):
@@ -731,7 +870,7 @@ def verify(root, profile, plan, journal, clean_home: bool) -> dict:
     res["axes"]["A6_detail"] = f"{viol}건"
 
     # A1·A4 — 헤드리스 프로브 세션 + SessionStart 센티널 이벤트 착지
-    claude = shutil.which("claude")
+    claude = find_cli("claude", profile)
     if not claude:
         res["unverifiable"].append("A1/A4 — claude 실행체 부재")
         res["axes"]["A1_headless"] = None
@@ -800,6 +939,23 @@ def cmd_install(args) -> int:
         j.mode = mode
 
     scope = Scope(root, profile, j)
+    reset._acknowledged = bool(getattr(args, "ack_deletion_list", False))
+    if mode == "reset-full":
+        surface = pathlib.Path(os.path.expanduser(
+            profile.get("user_home") or "~")) / ".claude"
+        plan_rf = reset_full_plan(surface)
+        print(f"reset-full 삭제 예정 {len(plan_rf['delete'])}건 · "
+              f"보존 {len(plan_rf['preserve'])}항목")
+        for x in plan_rf["delete"][:12]:
+            print(f"    삭제: {x}")
+        if len(plan_rf["delete"]) > 12:
+            print(f"    … 외 {len(plan_rf['delete']) - 12}건")
+        for x in plan_rf["preserve"]:
+            print(f"    보존: {x.name}")
+        j.write(phase="planned", step="reset-full-list", action="verify",
+                outcome="ok",
+                detail=f"삭제 {len(plan_rf['delete'])} · 보존 {len(plan_rf['preserve'])}"
+                       f" · 열람승인={reset._acknowledged}")
 
     # ── 인터뷰 (E§4) ────────────────────────────────────────────
     j.enter("interviewed", "interview")
@@ -807,8 +963,7 @@ def cmd_install(args) -> int:
     formulas = json.loads(
         (root / "harness/installer/formulas.json").read_text(encoding="utf-8"))
     limits = derive_limits(probe, formulas)
-    machine_id = hashlib.sha256(
-        f"{platform.node()}|{platform.machine()}".encode()).hexdigest()[:12]
+    machine_id = machine_identity(platform.node(), platform.machine())
     mrec = {
         "machine_id": machine_id, "display_alias": args.alias or platform.node(),
         "platform": plat, "role": "primary", "transport": "local",
@@ -818,8 +973,32 @@ def cmd_install(args) -> int:
     }
     mpath = root / "config/machines" / f"{machine_id}.json"
     mpath.parent.mkdir(parents=True, exist_ok=True)
+    prev = json.loads(mpath.read_text(encoding="utf-8")) if mpath.exists() else None
+    if prev is None:
+        # 같은 별칭의 손 작성 레코드가 있으면 그것을 이 머신의 정본으로 흡수한다 —
+        # 같은 물리 머신에 레코드가 두 벌이면 어느 쪽이 정본인지 판정 불가다.
+        for other in (root / "config/machines").glob("*.json"):
+            try:
+                cand = json.loads(other.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if cand.get("display_alias") == (args.alias or platform.node()) \
+                    and other.name != mpath.name:
+                prev = cand
+                other.unlink()
+                j.write(action="delete", target=other, outcome="ok",
+                        detail="같은 별칭의 중복 편성 레코드를 흡수")
+                break
+    limits = merge_limits(limits, prev)
+    # 병합 결과를 레코드에 **다시 넣는다**. 이름만 재할당하면 mrec 은 병합 전
+    # 값을 계속 가리키고, 출력과 파일이 갈린다 — 검증 축 A5 가 "기입 ≠ 적용"이라
+    # 적은 실패를 설치기 자신이 내게 된다(실사고 2026-07-29T03:39: 출력 50, 파일 8).
+    mrec["limits"] = limits
     mpath.write_text(json.dumps(mrec, ensure_ascii=False, indent=2) + "\n",
                      encoding="utf-8")
+    written = json.loads(mpath.read_text(encoding="utf-8"))     # 재독 대조
+    if written["limits"]["concurrency_cap"] != limits["concurrency_cap"]:
+        raise SystemExit("머신 레코드 기입값과 재독값이 다르다")
     j.write(action="probe", target=mpath, outcome="ok",
             detail=f"concurrency_cap={limits['concurrency_cap']}")
 
@@ -1011,6 +1190,8 @@ def main():
     p.add_argument("--names", default=None, help="role_key→표시명 JSON 파일")
     p.add_argument("--clean-home", action="store_true")
     p.add_argument("--force-new", action="store_true")
+    p.add_argument("--ack-deletion-list", action="store_true",
+                   help="reset-full 전용 — 삭제 예정 목록을 열람했음을 기록한다")
     p.set_defaults(func=cmd_install)
 
     p = sub.add_parser("uninstall")

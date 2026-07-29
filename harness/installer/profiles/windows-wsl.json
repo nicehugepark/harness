@@ -20,5 +20,10 @@
   },
   "hook_invoke": "python3 {script}",
   "path_style": "posix",
-  "platform": "windows-wsl"
+  "platform": "windows-wsl",
+  "bin_paths": [
+    "~/.local/bin",
+    "~/.npm-global/bin",
+    "/usr/local/bin"
+  ]
 }

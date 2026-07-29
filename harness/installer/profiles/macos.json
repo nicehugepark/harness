@@ -19,5 +19,10 @@
   },
   "hook_invoke": "python3 {script}",
   "path_style": "posix",
-  "platform": "macos"
+  "platform": "macos",
+  "bin_paths": [
+    "~/.local/bin",
+    "~/.npm-global/bin",
+    "/usr/local/bin"
+  ]
 }

@@ -425,3 +425,159 @@ def test_orphan_assets_are_reported_not_deleted():
     orphans = I.find_orphans(lab, prof, plan)
     assert str(stale) in [str(o) for o in orphans]
     assert stale.exists()
+
+
+# ── E§2.4.2 reset-full — 소유자 승인 하의 표면 소거 ──────────────
+def _claude_surface(lab):
+    home = lab / "fake-home" / ".claude"
+    for d in ("agents", "hooks", "rules", "skills/legacy-procedure"):
+        (home / d).mkdir(parents=True, exist_ok=True)
+        (home / d / "legacy.py").write_text("표식 없는 선행 판 자산", encoding="utf-8")
+    (home / "guard-log").mkdir(exist_ok=True)
+    (home / "guard-log" / "a.log").write_text("x", encoding="utf-8")
+    for keep in ("projects", "sessions", "plugins", "session-env", "tasks"):
+        (home / keep).mkdir(exist_ok=True)
+        (home / keep / "user.dat").write_text("사용자 데이터", encoding="utf-8")
+    (home / "history.jsonl").write_text("{}", encoding="utf-8")
+    (home / ".credentials.json").write_text("{}", encoding="utf-8")
+    (home / "settings.json").write_text(
+        json.dumps({"hooks": {"PreToolUse": [{"hooks": []}]}, "theme": "dark"}),
+        encoding="utf-8")
+    return home
+
+
+def test_reset_full_preserve_list_covers_platform_state():
+    """플랫폼 런타임 상태·사용자 데이터는 어느 모드에서도 소거 대상이 아니다."""
+    for name in ("projects", "sessions", "history.jsonl", ".credentials.json",
+                 "plugins", "backups", "session-env", "shell-snapshots",
+                 "tasks", "downloads", "cache"):
+        assert name in I.RESET_FULL_PRESERVE, name
+
+
+def test_reset_full_enumerates_before_deleting():
+    lab = _lab()
+    home = _claude_surface(lab)
+    plan = I.reset_full_plan(home)
+    names = {p.name for p in plan["delete"]}
+    assert "legacy.py" in names and "a.log" in names
+    kept = {p.name for p in plan["preserve"]}
+    assert {"projects", "sessions", "plugins", "history.jsonl",
+            ".credentials.json"} <= kept
+    for p in plan["delete"]:
+        assert p.exists()          # 열거는 삭제하지 않는다
+
+
+def test_reset_full_refuses_without_decision_and_acknowledgement():
+    lab = _lab()
+    prof = _profile(lab)
+    home = _claude_surface(lab)
+    j = I.Journal(lab, "t-rf", "reset-full")
+    ok, why = I.reset_full_allowed(lab, acknowledged=False)
+    assert not ok and "결정" in why
+    ok, why = I.reset_full_allowed(lab, acknowledged=True)
+    assert not ok and "결정" in why          # 결정 문서가 없다
+
+
+def test_reset_full_requires_acknowledgement_even_with_decision():
+    lab = _lab()
+    d = lab / "docs/decisions/public/2026/07"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "DN-20260729T000000Z-aaaaaaaa.md").write_text(
+        f"---\ntype: DN\n---\n{I.RESET_FULL_ALLOW_MARK}\n", encoding="utf-8")
+    ok, why = I.reset_full_allowed(lab, acknowledged=False)
+    assert not ok and "열람" in why
+    assert I.reset_full_allowed(lab, acknowledged=True)[0]
+
+
+def test_reset_full_never_touches_the_preserve_list():
+    lab = _lab()
+    prof = _profile(lab)
+    home = _claude_surface(lab)
+    j = I.Journal(lab, "t-rf2", "reset-full")
+    removed = I.reset_full_apply(home, j)
+    assert removed > 0
+    for keep in ("projects", "sessions", "plugins", "history.jsonl",
+                 ".credentials.json", "session-env", "tasks"):
+        assert (home / keep).exists(), keep
+    assert not (home / "rules").exists()
+    assert not (home / "guard-log").exists()
+
+
+def test_reset_full_strips_hook_registrations_but_keeps_other_settings():
+    lab = _lab()
+    home = _claude_surface(lab)
+    j = I.Journal(lab, "t-rf3", "reset-full")
+    I.reset_full_apply(home, j)
+    cfg = json.loads((home / "settings.json").read_text("utf-8"))
+    assert "hooks" not in cfg
+    assert cfg.get("theme") == "dark"      # 하네스 소관 밖 키는 보존
+
+
+# ── 사람 오버라이드 보존 (실사고 2026-07-29T03:37) ──────────────
+def test_install_preserves_human_override_and_shows_derived_value():
+    """실사고: 설치기가 매 실행마다 상한을 재계산해 사람 오버라이드를 덮었다
+    (원격 50→8 · 로컬 2→1). 상한이 설치할 때마다 조용히 바뀌면 그 값을 근거로
+    한 편성 판단이 무효가 된다.
+
+    B§4.4 는 사람 오버라이드가 판정식을 선점한다고 정한다. 산출값은 버리지 않고
+    **병기**해 괴리를 표면에 남긴다 — 덮는 것과 숨기는 것은 다른 실패다.
+    """
+    existing = {"limits": {"concurrency_cap": 50,
+                           "override": {"value": 50, "set_by": "의사결정권자"}}}
+    merged = I.merge_limits({"concurrency_cap": 8, "derived_at": "t"}, existing)
+    assert merged["concurrency_cap"] == 50
+    assert merged["formula_derived_cap"] == 8
+    assert merged["override"]["set_by"] == "의사결정권자"
+
+
+def test_install_without_override_takes_the_derived_value():
+    merged = I.merge_limits({"concurrency_cap": 8}, {"limits": {"concurrency_cap": 2}})
+    assert merged["concurrency_cap"] == 8
+
+
+def test_machine_id_is_stable_across_installs_on_the_same_host():
+    a = I.machine_identity("host-x", "x86_64")
+    b = I.machine_identity("host-x", "x86_64")
+    assert a == b and len(a) == 12
+    assert I.machine_identity("host-y", "x86_64") != a
+
+
+def test_profile_bin_paths_are_searched_for_the_platform_cli():
+    """실측: 원격의 claude 는 ~/.local/bin 에 있고 비대화 PATH 에는 없다.
+    찾지 못하면 검증 A1·A4 가 '검증 불가'가 되고, 그것은 통과가 아니다."""
+    lab = _lab()
+    fake = lab / "fake-bin"
+    fake.mkdir()
+    name = "harness-probe-cli"          # PATH 에 없는 이름을 쓴다
+    (fake / name).write_text("#!/bin/sh\n", encoding="utf-8")
+    (fake / name).chmod(0o755)
+    prof = _profile(lab)
+    prof["bin_paths"] = [str(fake)]
+    # 계약: PATH 우선, 없으면 프로파일 경로. 순서를 시험이 고정한다
+    assert I.find_cli(name, prof) == str(fake / name)
+    assert I.find_cli("no-such-binary-xyz", prof) is None
+    prof_empty = dict(prof, bin_paths=[])
+    assert I.find_cli(name, prof_empty) is None
+
+
+def test_written_machine_record_carries_the_override_not_just_the_printout():
+    """실사고: 병합이 레코드 조립 **이후**에 일어나 출력은 50, 기록된 파일은 8이었다.
+    검증 축 A5 가 '기입 ≠ 적용이므로 재독 대조'라고 적은 그 실패를 코드가 냈다.
+    계약의 대상은 출력이 아니라 **파일에 남은 값**이다."""
+    lab = _lab()
+    prof = _profile(lab)
+    mid = I.machine_identity("host-t", "x86_64")
+    mp = lab / "config/machines" / f"{mid}.json"
+    mp.parent.mkdir(parents=True, exist_ok=True)
+    mp.write_text(json.dumps({
+        "machine_id": mid, "display_alias": "t", "limits": {
+            "concurrency_cap": 50,
+            "override": {"value": 50, "set_by": "의사결정권자"}}}),
+        encoding="utf-8")
+    derived = {"concurrency_cap": 8, "derived_at": "t"}
+    merged = I.merge_limits(derived, json.loads(mp.read_text("utf-8")))
+    rec = {"machine_id": mid, "display_alias": "t", "limits": merged}
+    mp.write_text(json.dumps(rec, ensure_ascii=False), encoding="utf-8")
+    back = json.loads(mp.read_text("utf-8"))          # 재독 대조
+    assert back["limits"]["concurrency_cap"] == 50
+    assert back["limits"]["formula_derived_cap"] == 8

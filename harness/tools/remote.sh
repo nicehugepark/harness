@@ -31,7 +31,14 @@ case "$1" in
     # 추적만 보내면 **미커밋 작업이 조용히 빠지고** 원격 결과가 과소 보고된다
     # (실측 2026-07-29T03:22 — 원격 118 대 로컬 168, 새 시험 3파일이 미커밋이었다).
     git ls-files -co --exclude-standard -z | tar --null -T - -czf /tmp/_hsync.tgz
-    rsh "rm -rf $RROOT && mkdir -p $RROOT"
+    # 원격 루트를 통째로 지우지 않는다. config/·vault/·derived/·.claude/ 는
+    # **그 머신의 로컬 상태**(머신 편성·이름 레지스트리·설치 저널·볼트)이고
+    # 버전관리 밖이라 tar 에 실리지 않는다 — 지우면 복구 경로가 없다.
+    # 실사고 2026-07-29T03:39: sync 가 매번 원격 config/ 를 파괴해 사람이 적용한
+    # 동시성 상한 오버라이드가 조용히 사라졌고, 같은 값을 두 번 다시 적용했다.
+    rsh "mkdir -p $RROOT"
+    # 추적 트리만 정리한다(사라진 파일이 남지 않게). 로컬 상태 디렉토리는 제외.
+    rsh "cd $RROOT && rm -rf docs/design docs/reference docs/requests harness README.md .githooks"
     cat /tmp/_hsync.tgz | rsh "tar xzf - -C $RROOT"
     rsh "cd $RROOT && mkdir -p config/local config/names config/machines \
          config/install/journal vault derived .claude fake-home/.claude"

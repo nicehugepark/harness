@@ -18,5 +18,10 @@
   },
   "hook_invoke": "python3 {script}",
   "path_style": "posix",
-  "platform": "linux"
+  "platform": "linux",
+  "bin_paths": [
+    "~/.local/bin",
+    "~/.npm-global/bin",
+    "/usr/local/bin"
+  ]
 }
