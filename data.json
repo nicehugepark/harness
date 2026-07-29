@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T15:42:14+09:00",
+  "at": "2026-07-29T15:47:24+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,33 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "049b0d0e3c40",
-      "ts": "2026-07-29T05:49:45Z",
-      "stream": "sched-decisions",
-      "event": "sched.tick",
-      "plane": "system",
-      "machine": "m01-wsl",
-      "session": "tick-cc0b5116d0f0",
-      "data": {
-        "ts": "2026-07-29T05:49:45Z",
-        "trigger": "periodic",
-        "kill_switch": false,
-        "capacity": {
-          "18f97fd8ca3a": {
-            "cap": 50,
-            "active": 1
-          }
-        },
-        "inputs": [],
-        "decisions": [],
-        "adjudications_filed": [],
-        "idle_defect": false,
-        "schema_ver": "sched/1",
-        "tick_id": "cc0b5116d0f0"
-      },
-      "_stream": "AU-20260729T054945Z-dbe12917-sched-decisions.jsonl"
-    },
     {
       "id": "f419eb99e0f5",
       "ts": "2026-07-29T05:50:34Z",
@@ -2075,6 +2048,47 @@
         }
       },
       "_stream": "AU-20260729T064214Z-ac999d5b-agent-events.jsonl"
+    },
+    {
+      "id": "67a60ec01a6f",
+      "ts": "2026-07-29T06:47:24Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T15:47:19+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T064214Z-ac999d5b-agent-events.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T064214Z-ac999d5b-agent-events.jsonl"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 7
+        },
+        "mirror": {
+          "copied": 2,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": true,
+          "ahead": 1,
+          "reason": ""
+        }
+      },
+      "_stream": "AU-20260729T064724Z-be9a528d-agent-events.jsonl"
     }
   ],
   "sessions": [],
