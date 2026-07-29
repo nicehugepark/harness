@@ -22,16 +22,30 @@ from . import clock, frontmatter, schema
 # 계약 상수 — 순서가 바뀌면 고아 세션이 생긴다. 시험이 이 값을 고정한다.
 CLAIM_BEFORE_SPAWN = True
 
+# 점유 가능 상태 → claim 이 쓰는 상태.
+#
+# `queued` 는 전이 5(스케줄러 dispatch)라 상태가 designing 으로 간다.
+# `received` 는 다르다 — 전이 2(received→analyzed)의 방아쇠가 "pm 분석 문서 착지"라
+# 세션을 띄우는 시점에는 아직 그 문서가 없다. 그래서 여기서는 **lease 만** 잡고
+# 상태는 그대로 둔다. 상태는 분석 문서가 착지한 뒤 advance.py 가 전이표대로 쓴다.
+#
+# 이 lane 이 없던 동안 `received` 요청은 아무도 집어가지 않아 원장에 영원히
+# 남았고, 리드가 손으로 queued 로 올려야 진행됐다 — 사람이 매번 손을 대야 하는
+# 자리는 자동 가동이 아니다.
+CLAIMABLE = {"queued": "designing", "received": "received"}
+STAGE_BY_STATE = {"queued": "design", "received": "analysis"}
+
 
 def can_claim(meta: dict) -> tuple[bool, str]:
-    """전이 5 의 가드를 원장 관점에서 본 것.
+    """전이 2·5 의 가드를 원장 관점에서 본 것.
 
     이미 실행 상태이거나 다른 lease 가 붙어 있으면 claim 하지 않는다 —
     "다음 하나 고르기"가 아니라 "점유 가능한가"의 판정이다.
     """
     state = schema.read_state(meta)
-    if state != "queued":
-        return False, f"이미 {state} 상태다 — queued 만 claim 대상이다"
+    if state not in CLAIMABLE:
+        return False, (f"이미 {state} 상태다 — "
+                       f"{sorted(CLAIMABLE)} 만 claim 대상이다")
     if meta.get("session_ref"):
         return False, (f"이미 lease 가 붙어 있다: {meta['session_ref']!r} — "
                        f"고아 회수는 종료 실증 인터록이 판정한다")
@@ -44,8 +58,13 @@ def lease_ok(meta: dict, session_ref: str) -> bool:
     return bool(cur) and cur == session_ref
 
 
+def stage_for(meta: dict) -> str:
+    """이 요청을 지금 집으면 어느 단계를 도는가. 세션 프롬프트가 이 값으로 갈린다."""
+    return STAGE_BY_STATE.get(schema.read_state(meta), "design")
+
+
 def claim(root, rel_path: str, session_ref: str, *, machine: str) -> tuple[bool, str]:
-    """queued → designing 전이 + lease 기입을 **원자적으로** 한다.
+    """전이 5(queued→designing) 또는 전이 2 앞의 점유 + lease 기입을 **원자적으로** 한다.
 
     쓰기는 임시 파일 + rename 이고, 추적 등재까지가 한 단위다. 실패하면
     아무것도 바꾸지 않는다 — 부분 상태를 남기면 다음 틱의 판정이 오염된다.
@@ -63,7 +82,7 @@ def claim(root, rel_path: str, session_ref: str, *, machine: str) -> tuple[bool,
 
     meta = dict(doc.meta)
     key = "status" if int(meta.get("schema", 2)) <= 1 else "state"
-    meta[key] = "designing"
+    meta[key] = CLAIMABLE[schema.read_state(doc.meta)]
     meta["session_ref"] = session_ref
     meta["machine_assigned"] = machine
     meta["updated"] = clock.iso_local()

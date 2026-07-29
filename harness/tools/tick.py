@@ -107,7 +107,7 @@ def _find_cli(root: pathlib.Path) -> str | None:
 
 
 def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
-                     engine: str) -> tuple[bool, str]:
+                     engine: str, stage: str = "design") -> tuple[bool, str]:
     """B§3.1 — CLI 헤드리스로 요청 세션을 기동하고 B§2.1 입력을 넘긴다.
 
     스폰 입력은 **파라미터로만** 전달한다. 완료기준은 원장 경로(포인터),
@@ -140,7 +140,7 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
         "HARNESS_ROOT": str(root),
         "HARNESS_LIB": str(root / "harness" / "lib"),
         "HARNESS_REQ": req["id"],
-        "HARNESS_ROLE": "architect",
+        "HARNESS_ROLE": "pm" if stage == "analysis" else "architect",
         "HARNESS_PLANE": "workflow",
         "HARNESS_SESSION": session_ref,
         "HARNESS_MACHINE": machine["machine_id"],
@@ -154,6 +154,7 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
         f"ledger_path={launch['ledger_path']}\n"
         f"baseline_ref={launch['baseline_ref']}\n"
         f"engine={launch['engine']}\n"
+        f"stage={stage}\n"
         "첫 행동은 ledger_path 전문 읽기입니다. 이 프롬프트에 적히지 않은 완료 "
         "기준·기준선을 추측하지 마십시오. 판정은 gatecheck.py 의 종료 코드가 "
         "하며, 여러분이 통과를 선언하는 것은 판정이 아닙니다."
@@ -176,8 +177,10 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
                                          f"session-{session_ref}.log", "w"),
                              stderr=subprocess.STDOUT, start_new_session=True)
     except OSError as exc:
-        # 기동 실패 시 claim 을 되돌린다 — 점유만 남으면 그 요청이 영영 멈춘다
-        ledger.release(root, req["path"], session_ref, to_state="queued")
+        # 기동 실패 시 claim 을 되돌린다 — 점유만 남으면 그 요청이 영영 멈춘다.
+        # 되돌릴 자리는 lane 마다 다르다: 분석 lane 은 상태를 바꾼 적이 없다.
+        ledger.release(root, req["path"], session_ref,
+                       to_state="received" if stage == "analysis" else "queued")
         return False, str(exc)
     return True, f"pid={p.pid} session_ref={session_ref}"
 
@@ -217,19 +220,37 @@ def main() -> int:
         print(f"[warn] 결정 로그 착지 실패: {exc}", file=sys.stderr)
 
     dispatched = []
+    by_machine = {m["machine_id"]: m for m in machines}
     if args.dispatch and not out["kill_switch"]:
         by_id = {r["id"]: r for r in queued}
-        by_machine = {m["machine_id"]: m for m in machines}
         for d in out["dispatched"]:
             ok, detail = dispatch_session(root, by_id[d["req_id"]],
                                           by_machine[d["machine"]], "workflow")
             dispatched.append({**d, "ok": ok, "detail": detail})
+
+    # ── 인테이크 lane (전이 2 앞) ────────────────────────────────────
+    # `received` 는 스케줄러의 배분 대상이 아니다 — 우선순위·weight 가 아직 없어
+    # 유효 우선순위를 계산할 수 없다. 그래서 별도 lane 으로, 남은 슬롯 안에서,
+    # lease 없는 것만 집는다. 여기서 도는 세션은 분석 문서 1건만 내고 끝난다.
+    intake = [r for r in reqs
+              if r["state"] == "received" and not r.get("session_ref")]
+    slots = sum(int(m["limits"]["concurrency_cap"]) for m in machines) \
+        - len(running) - len(dispatched)
+    if args.dispatch and not out["kill_switch"] and intake and slots > 0:
+        target = machines[0]
+        for r in intake[:slots]:
+            ok, detail = dispatch_session(root, r, target, "workflow",
+                                          stage="analysis")
+            dispatched.append({"req_id": r["id"], "machine": target["machine_id"],
+                               "lane": "intake", "ok": ok, "detail": detail})
 
     cap_total = sum(int(m["limits"]["concurrency_cap"]) for m in machines)
     print(f"틱 {out['decision_log']['tick_id']} · {now} · 트리거 {args.trigger}")
     print(f"  머신 {len(machines)}대 · 전역 WIP 상한 {cap_total} · 실행 중 {len(running)}")
     print(f"  대기 {len(queued)} · 적격 {len(out.get('eligible', []))} · "
           f"배분 {len(out['dispatched'])}")
+    print(f"  인테이크 대기 {len(intake)} · 기동 "
+          f"{sum(1 for d in dispatched if d.get('lane') == 'intake')}")
     if out["kill_switch"]:
         print("  킬 스위치 ON — 신규 기동 전면 정지")
     if out["idle_defect"]:

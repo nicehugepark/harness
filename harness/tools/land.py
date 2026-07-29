@@ -75,16 +75,93 @@ def append_index(root: pathlib.Path, meta: dict, rel) -> None:
             fh.write(line)
 
 
+AMEND_MARK = "<!-- amend -->"
+
+
+def amend(root: pathlib.Path, rel: str, body: str, note: str,
+          role_key: str) -> int:
+    """등재 후 추가 문면을 **덧붙인다**. 기존 문면은 건드리지 않는다.
+
+    소급 수정을 허용하지 않는 규약과 "등재 뒤에 온 발화도 원장에 실려야 한다"는
+    요구를 함께 만족시키는 자리다. 덧붙이기만 하므로 과거 판정의 근거가 사라지지
+    않고, 추가분에는 시각·주체·사유가 붙어 나중에 무엇이 언제 늘었는지 판정된다.
+
+    쓰기·추적 등재·감사 이벤트가 한 단위인 것은 생성 경로와 같다.
+    """
+    p = root / rel
+    if not p.exists():
+        print(f"대상 없음: {rel}", file=sys.stderr)
+        return 1
+    try:
+        doc = frontmatter.parse(p.read_text(encoding="utf-8"))
+    except frontmatter.ParseError as exc:
+        print(f"프론트매터 파손: {exc}", file=sys.stderr)
+        return 1
+
+    ident = build_identity(root, role_key)
+    now = clock.iso_local()
+    block = (f"\n\n{AMEND_MARK}\n"
+             f"### 등재 후 추가 ({now} · {ident.author}·{role_key})\n\n"
+             f"**사유** — {note}\n\n{body.rstrip()}\n")
+    meta = dict(doc.meta)
+    meta["updated"] = now
+    text = frontmatter.render(meta, doc.body.rstrip() + block)
+
+    # 추가분도 착지 게이트의 내용 검사를 그대로 받는다 — 추가 경로가 우회로가
+    # 되면 금지 토큰·아부 어휘가 "덧붙이기"라는 이름으로 들어온다.
+    # 여기서 거는 것은 **내용 검사 2종**(E18 정제 · 아부)이며, 경로·스키마 검사는
+    # 대상 문서가 이미 통과한 것이라 다시 걸지 않는다. 검사한 것과 하지 않은
+    # 것을 이렇게 적어두지 않으면 "착지 검증을 받았다"가 전량 검사로 읽힌다.
+    hit = gate._sanitize_hit(text, root) if meta.get("visibility") == "public" \
+        else None
+    if hit:
+        print(f"추가 거부 [E18] 정제 스캔 검출: {hit}", file=sys.stderr)
+        return 1
+    praise = gate.check_praise(meta, frontmatter.parse(text),
+                               policy.load(root).get("praise_lexicon", []))
+    if praise:
+        print(f"추가 거부 아부·상찬 검출: {praise}", file=sys.stderr)
+        return 1
+
+    tmp = p.with_suffix(p.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(text)
+        fh.flush()
+        os.fsync(fh.fileno())
+    os.replace(tmp, p)
+    if (root / ".git").exists():
+        subprocess.run(["git", "-C", str(root), "add", "--", rel],
+                       capture_output=True, text=True)
+    try:
+        w = envelope.Writer(root_dir=root, stream="agent-events",
+                            identity={"machine": ident.machine,
+                                      "session": ident.session,
+                                      "plane": os.environ.get("HARNESS_PLANE",
+                                                              "interactive"),
+                                      "req": meta.get("id"),
+                                      "role": role_key, "agent": ident.author})
+        w.append("doc.amended", {"id": meta.get("id"), "path": rel,
+                                 "bytes": len(block), "note": note[:120]})
+    except Exception as exc:                          # noqa: BLE001
+        print(f"[warn] 감사 이벤트 실패(추가는 완료): {exc}", file=sys.stderr)
+    print(rel)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="문서 생성·착지 (A§5.2 land)")
     ap.add_argument("--root", default=str(ROOT_DEFAULT))
-    ap.add_argument("--type", required=True, choices=sorted(ids.EXT_BY_TYPE))
-    ap.add_argument("--title", required=True)
-    ap.add_argument("--visibility", required=True, choices=["public", "private"],
+    ap.add_argument("--amend", default=None,
+                    help="기존 문서에 문면을 덧붙인다(저장소 상대 경로). "
+                         "생성 인자 대신 --body-file·--note 를 쓴다")
+    ap.add_argument("--note", default=None, help="--amend 의 사유")
+    ap.add_argument("--type", choices=sorted(ids.EXT_BY_TYPE))
+    ap.add_argument("--title")
+    ap.add_argument("--visibility", choices=["public", "private"],
                     help="기본값 없음 — 미지정은 존재하지 않는 값이다(A§1.5)")
-    ap.add_argument("--what", required=True)
-    ap.add_argument("--why", required=True)
-    ap.add_argument("--tags", required=True,
+    ap.add_argument("--what")
+    ap.add_argument("--why")
+    ap.add_argument("--tags",
                     help="쉼표 구분. 자동 파생 축(stage/·origin/)은 도구가 주입한다")
     ap.add_argument("--role", default=os.environ.get("HARNESS_ROLE", "lead"))
     ap.add_argument("--requester", default="의사결정권자")
@@ -104,6 +181,20 @@ def main() -> int:
             if args.body_file else sys.stdin.read())
     if not body.strip():
         print("본문이 비었다 — 파일 또는 표준입력으로 넘겨라", file=sys.stderr)
+        return 1
+
+    if args.amend:
+        if not args.note:
+            print("--amend 는 --note(사유) 를 요구한다 — 사유 없는 추가는 "
+                  "나중에 누구도 그 문면이 왜 늘었는지 답할 수 없다",
+                  file=sys.stderr)
+            return 1
+        return amend(root, args.amend, body, args.note, args.role)
+
+    missing = [n for n in ("type", "title", "visibility", "what", "why", "tags")
+               if getattr(args, n) in (None, "")]
+    if missing:
+        print(f"생성 모드 필수 인자 결손: {missing}", file=sys.stderr)
         return 1
 
     ident = build_identity(root, args.role)

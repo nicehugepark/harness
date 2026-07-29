@@ -1,0 +1,2 @@
+{"stream": "agent-events", "producer": "훅 9종(D§1.2)", "consumer": "대시보드 파생 뷰 · 수명주기 감독 · 실패 롤업", "transition": "append → 배치 파생 뷰 → 월 마감 컴팩션·콜드 아카이브", "retention": "활성 당월+2개월, 이후 압축 아카이브(삭제 금지)", "writer": "2898af6f-f67b-42d4-946d-03228edd2c3a", "prev": null, "schema": 1}
+{"id": "ea559e184681", "ts": "2026-07-29T05:53:40Z", "stream": "agent-events", "event": "prompt.submit", "plane": "interactive", "machine": "m-ea155febfb", "session": "2898af6f-f67b-42d4-946d-03228edd2c3a", "data": {"len": 34, "digest": "6f95fd05d1b49570"}}
