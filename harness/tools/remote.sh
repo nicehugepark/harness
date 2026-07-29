@@ -36,6 +36,10 @@ case "$1" in
       git status --short | head -5 >&2
       exit 1
     fi
+    # **양쪽이 같은 브랜치에 쓴다** — 로컬은 코드를, 원격은 원장을. 그래서
+    # 당기지 않고 밀면 매번 거부된다. 당기고 밀고 원격이 당기는 순서가 정본이다.
+    git fetch -q origin main
+    git merge --no-edit -q origin/main 2>&1 | tail -1
     git push -q origin main
     rsh "cd $RROOT && git fetch -q origin main && git merge --no-edit -q origin/main" \
       && echo "  원격 pull 완료"
