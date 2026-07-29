@@ -167,7 +167,7 @@ async function build(ds) {
   if (uiUnits.length) {
     phase('구현')
     await parallel(uiUnits.map((u, i) => () =>
-      agent(ctx('designer(이시카와)') + `유닛: ${u.name}\n` +
+      agent(ctx('designer(사이토)') + `유닛: ${u.name}\n` +
         '화면 요건과 시각 방향을 산출하십시오.\n' + UI_RULE,
         { label: `designer:${i + 1}`, phase: '구현', schema: DOC })))
   }
@@ -175,7 +175,7 @@ async function build(ds) {
   // 유닛마다 구현→검증을 독립으로 흘린다. 한 유닛이 느리다고 나머지가 기다리지 않는다.
   const done = await pipeline(list,
     (u, _o, i) => agent(
-      ctx(u.kind === 'ui' ? 'frontend-developer(보마)' : 'developer') +
+      ctx(u.kind === 'ui' ? 'frontend-developer(프로토)' : 'developer') +
       `유닛: ${u.name}\n실패하는 시험을 먼저 쓰고 그 실패를 관측한 뒤 구현하십시오. ` +
       `증거(실패 시험 참조·실패 출력·구현 참조·통과 출력)를 BuildReport 로 착지시킵니다. ` +
       `산출이 문서면 doc 증거 계약을 씁니다.\n` +
