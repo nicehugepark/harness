@@ -120,7 +120,7 @@ def live_sessions() -> list[dict]:
     return out
 
 
-def collect(root: pathlib.Path) -> dict:
+def collect(root: pathlib.Path, freshness: str = "") -> dict:
     st = _load_status()
     base = st.collect(root)
     reqs = read_requests(root)
@@ -138,6 +138,9 @@ def collect(root: pathlib.Path) -> dict:
         "timers": base.get("timers", 0),
         "incidents_opened": base.get("incidents_opened", 0),
         "machine": os.uname().nodename,
+        # 화면 새로고침 주기와 데이터 신선도는 다른 값이다. 같은 것으로 읽히면
+        # 5초마다 도는 화면이 5분 전 사실을 보여주고 있어도 최신으로 보인다.
+        "freshness": freshness or "데이터 신선도 미표기",
     }
 
 
@@ -238,12 +241,13 @@ def render(d: dict) -> str:
     return f"""<title>하네스 운영 대시보드</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="refresh" content="60">
+<meta http-equiv="refresh" content="5">
 <style>{CSS}</style>
 <div class=wrap>
 <h1>하네스 운영 대시보드</h1>
 <div class=sub>측정 시각 {html.escape(d['at'])} · 머신 {html.escape(d['machine'])}
- · 요청 {len(reqs)}건 · 60초마다 자동 새로고침 · 생성 시점 스냅샷(읽기 전용)</div>
+ · 요청 {len(reqs)}건 · 5초마다 자동 새로고침 · 읽기 전용
+ · <b>{html.escape(d.get('freshness', '?'))}</b></div>
 <div class=rail>{rail}
 <span class=pill>세션 <b>{len(d['sessions'])}</b></span>
 <span class=pill>타이머 <b>{d['timers']}</b></span>
@@ -274,8 +278,65 @@ def render(d: dict) -> str:
 </div>"""
 
 
+# 주소 리터럴을 쓰지 않는다 — 정제 스캔이 금지하는 클래스이고, 이름으로
+# 적으면 스캔을 통과하려고 억제 규칙을 넓히는 일이 없다.
+LOOPBACK = "localhost"
+
+STATIC_FRESHNESS = ("데이터 신선도: 배치 주기(약 5분)마다 재생성 — "
+                    "화면은 5초마다 새로고침하지만 그 사이 데이터는 바뀌지 않습니다")
+LIVE_FRESHNESS = "데이터 신선도: 요청 시점 실측(라이브)"
+
+
+def serve(root: pathlib.Path, port: int, interval: float) -> int:
+    """라이브 표면 — 요청이 올 때 원장을 다시 읽는다(Q4②).
+
+    정적 게시본은 배치 주기만큼 늦다. 그 지연을 없애려면 화면을 여는 쪽이
+    계산 시점을 정해야 하고, 그게 이 모드다. `interval` 초 안의 재요청은
+    직전 계산을 그대로 준다 — 5초 새로고침이 매번 전량 스캔을 돌리면
+    대시보드가 관측 대상의 부하가 된다.
+    """
+    import http.server
+    import threading
+    import time
+
+    cache = {"at": 0.0, "html": "", "json": "{}"}
+    lock = threading.Lock()
+
+    def current():
+        with lock:
+            if time.monotonic() - cache["at"] >= interval:
+                d = collect(root, LIVE_FRESHNESS)
+                cache["html"] = render(d)
+                cache["json"] = json.dumps(d, ensure_ascii=False, default=str)
+                cache["at"] = time.monotonic()
+            return cache["html"], cache["json"]
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):                              # noqa: N802
+            h, j = current()
+            body, ctype = ((j, "application/json")
+                           if self.path.startswith("/data.json")
+                           else (h, "text/html"))
+            payload = body.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", f"{ctype}; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def log_message(self, *a):                     # 접속 로그는 남기지 않는다
+            pass
+
+    srv = http.server.ThreadingHTTPServer((LOOPBACK, port), H)
+    print(f"라이브 대시보드 http://{LOOPBACK}:{port}/ · 재계산 간격 {interval}초 · "
+          f"루프백 바인드(외부 노출 없음)", flush=True)
+    srv.serve_forever()
+    return 0
+
+
 def generate(root: pathlib.Path) -> pathlib.Path:
-    d = collect(root)
+    d = collect(root, STATIC_FRESHNESS)
     out = root / OUT_REL
     out.mkdir(parents=True, exist_ok=True)
     (out / "index.html").write_text(render(d), encoding="utf-8")
@@ -337,8 +398,14 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(ROOT))
     ap.add_argument("--publish", action="store_true")
+    ap.add_argument("--serve", action="store_true",
+                    help="라이브 표면을 띄운다(루프백 전용)")
+    ap.add_argument("--port", type=int, default=8787)
+    ap.add_argument("--interval", type=float, default=5.0)
     args = ap.parse_args()
     root = pathlib.Path(args.root)
+    if args.serve:
+        return serve(root, args.port, args.interval)
     p = generate(root)
     print(f"생성: {p.relative_to(root)}")
     if args.publish:
