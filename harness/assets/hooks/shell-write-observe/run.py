@@ -14,6 +14,12 @@ sys.path.insert(0, os.environ.get("HARNESS_LIB")
 
 from harness_core import clock, envelope, hooks as H, policy, registry, roster
 
+# 아래는 선언이 아니라 **식별용 고정 문자열**이다. 선언 블록은 동반 hook.json 에만
+# 둔다(E§2.5.1). 이 표식이 없으면 설치기가 이 파일을 관리물로 판정하지 못해
+# 증분 갱신에서 '사용자 커스텀'으로 보류되고 초기화에서도 남는다
+# (실측 2026-07-29T11:27 — 증분 설치 보류 5건, 수정본이 배치되지 않았다).
+HARNESS_MANAGED = "harness-managed-asset/v1"
+
 
 @H.safe
 def main():

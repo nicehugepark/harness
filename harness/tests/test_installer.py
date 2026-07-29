@@ -319,3 +319,72 @@ def test_archived_paths_are_collision_free():
     for e in man["entries"]:
         src, dst = pathlib.Path(e["source_path"]), snap / e["archived_path"]
         assert dst.read_bytes() == src.read_bytes(), e["source_path"]
+
+
+def test_hook_executables_carry_the_managed_mark():
+    """실사고: 훅 실행체에 관리 표식이 없어 ①증분 설치가 '사용자 커스텀'으로
+    보류해 갱신되지 않고 ②reset-managed 가 관리물로 식별하지 못해 남는다.
+
+    표식은 선언 블록이 아니다 — 선언은 hook.json 에만 두고(E§2.5.1), 실행체에는
+    식별용 고정 문자열만 둔다. 둘을 혼동하면 파서가 언어별로 갈라진다."""
+    lab = _lab()
+    for run in (lab / "harness/assets/hooks").glob("*/run.py"):
+        assert I.MANAGED_MARK in run.read_text(encoding="utf-8"), run
+
+
+def test_incremental_updates_changed_hook_executable():
+    lab = _lab()
+    prof = _profile(lab)
+    j = I.Journal(lab, "t-inc", "install")
+    scope = I.Scope(lab, prof, j)
+    plan = I.derive_plan(lab, prof, "linux")
+    I.apply_plan(lab, plan, j, scope, incremental=False)
+    src = next(p for p in plan if p["src"].name == "run.py")
+    src["src"].write_text(src["src"].read_text("utf-8") + "\n# changed\n",
+                          encoding="utf-8")
+    plan2 = I.derive_plan(lab, prof, "linux")
+    placed, conflicts = I.apply_plan(lab, plan2, j, scope, incremental=True)
+    assert conflicts == [], f"관리물이 충돌로 보류됐다: {conflicts}"
+    assert "# changed" in src["dest"].read_text("utf-8")
+
+
+def test_incremental_uses_manifest_join_not_only_the_mark():
+    """실사고: 표식을 도입하기 **전에** 배치된 파일은 표식이 없다. 증분 판정이
+    표식만 보면 설치기가 자기가 놓은 파일을 '사용자 커스텀'으로 보류하고,
+    수정본이 영원히 배치되지 않는다(실측 2026-07-29T11:29 — 보류 5건 반복).
+
+    E§2.4.1 의 클래스 판정식은 표식 **또는 매니페스트 조인**이다. 증분 경로가
+    그 둘 중 하나만 쓰면 판정식이 절반만 구현된 것이다."""
+    lab = _lab()
+    prof = _profile(lab)
+    j = I.Journal(lab, "t-join", "install")
+    scope = I.Scope(lab, prof, j)
+    plan = I.derive_plan(lab, prof, "linux")
+    I.apply_plan(lab, plan, j, scope, incremental=False)
+
+    target = next(p for p in plan if p["kind"] == "agent")
+    # 표식 도입 이전 배치본을 모사한다 — 내용은 다르고 표식은 없다
+    target["dest"].write_text("표식 없는 구판 배치본\n", encoding="utf-8")
+    manifest = {"assets": [{"asset_id": p["asset_id"], "dest_path": str(p["dest"])}
+                           for p in plan]}
+
+    placed, conflicts = I.apply_plan(lab, plan, j, scope, incremental=True,
+                                     manifest=manifest)
+    assert conflicts == [], f"매니페스트에 있는 자산이 충돌로 보류됐다: {conflicts}"
+    assert I.MANAGED_MARK in target["dest"].read_text("utf-8")
+
+
+def test_incremental_still_preserves_truly_foreign_files():
+    """매니페스트에도 없고 표식도 없으면 보존한다 — 조인 도입이 불가침을 깨지 않는다."""
+    lab = _lab()
+    prof = _profile(lab)
+    j = I.Journal(lab, "t-join2", "install")
+    scope = I.Scope(lab, prof, j)
+    plan = I.derive_plan(lab, prof, "linux")
+    target = next(p for p in plan if p["kind"] == "agent")
+    target["dest"].parent.mkdir(parents=True, exist_ok=True)
+    target["dest"].write_text("사용자가 손으로 쓴 정의\n", encoding="utf-8")
+    placed, conflicts = I.apply_plan(lab, plan, j, scope, incremental=True,
+                                     manifest={"assets": []})
+    assert any(c["asset_id"] == target["asset_id"] for c in conflicts)
+    assert target["dest"].read_text("utf-8") == "사용자가 손으로 쓴 정의\n"

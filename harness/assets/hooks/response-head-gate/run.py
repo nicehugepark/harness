@@ -14,6 +14,12 @@ sys.path.insert(0, os.environ.get("HARNESS_LIB")
 
 from harness_core import clock, envelope, hooks as H, policy, registry, roster
 
+# 아래는 선언이 아니라 **식별용 고정 문자열**이다. 선언 블록은 동반 hook.json 에만
+# 둔다(E§2.5.1). 이 표식이 없으면 설치기가 이 파일을 관리물로 판정하지 못해
+# 증분 갱신에서 '사용자 커스텀'으로 보류되고 초기화에서도 남는다
+# (실측 2026-07-29T11:27 — 증분 설치 보류 5건, 수정본이 배치되지 않았다).
+HARNESS_MANAGED = "harness-managed-asset/v1"
+
 
 @H.safe
 def main():
@@ -21,20 +27,7 @@ def main():
     root = H.root_dir(payload)
     ident = H.identity(payload)
     pol = policy.load(root)
-    text = ""
-    tp = payload.get("transcript_path")
-    if tp and pathlib.Path(tp).exists():
-        try:
-            lines = pathlib.Path(tp).read_text(encoding="utf-8").splitlines()
-            for ln in reversed(lines):
-                rec = json.loads(ln)
-                if rec.get("type") == "assistant":
-                    c = rec.get("message", {}).get("content", [])
-                    text = "".join(b.get("text", "") for b in c if isinstance(b, dict))
-                    if text.strip():
-                        break
-        except Exception:
-            text = ""
+    text = H.response_text(payload)
     injected = None
     st = root / "config" / "local" / "turn-clock.json"
     if st.exists():
@@ -62,7 +55,10 @@ def main():
             H.block_stop(f"판정·리뷰 구조화 필드에 상찬 어휘가 있습니다: {praise!r}. "
                          f"사실·행동·근거로 다시 쓰십시오(S§2-19).")
             return 0
-        if not ok and text.strip():
+        if not text.strip():
+            # 판정 불가 — 위반이 아니다. 사실만 남기고 통과시킨다(S§7).
+            pass
+        elif not ok:
             H.block_stop(why)
             return 0
     H.emit({})

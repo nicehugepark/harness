@@ -544,13 +544,21 @@ def reset(root, profile, journal, scope, mode, manifest) -> int:
 
 
 # ══ 배치 (E§2.5) ════════════════════════════════════════════════
-def apply_plan(root, plan, journal, scope, incremental: bool) -> tuple[list, list]:
+def apply_plan(root, plan, journal, scope, incremental: bool,
+               manifest: dict | None = None) -> tuple[list, list]:
+    """E§2.4.1 클래스 판정식은 **표식 또는 매니페스트 조인**이다.
+
+    둘 중 하나만 쓰면 판정식이 절반만 구현된다 — 표식 도입 이전에 배치된 파일은
+    표식이 없어서 설치기가 자기가 놓은 것을 '사용자 커스텀'으로 보류하고,
+    수정본이 영원히 배치되지 않는다(실측 2026-07-29T11:29 — 보류 5건 반복).
+    """
+    ours = {a.get("dest_path") for a in (manifest or {}).get("assets", [])}
     placed, conflicts = [], []
     for item in plan:
         dest: pathlib.Path = item["dest"]
         if dest.exists() and incremental:
             existing = dest.read_text(encoding="utf-8", errors="ignore")
-            if MANAGED_MARK not in existing:
+            if MANAGED_MARK not in existing and str(dest) not in ours:
                 conflicts.append({"asset_id": item["asset_id"],
                                   "dest": str(dest), "reason": "사용자 커스텀 보존"})
                 journal.write(action="write", target=dest, outcome="skipped",
@@ -813,7 +821,8 @@ def cmd_install(args) -> int:
         j.enter("installed", "deploy")
         plan = derive_plan(root, profile, plat)
         placed, conflicts = apply_plan(root, plan, j, scope,
-                                        incremental=(mode == "incremental"))
+                                        incremental=(mode == "incremental"),
+                                        manifest=manifest)
         keys = apply_settings(root, profile, plan, j, scope, limits)
 
         j.enter("verified", "verify")

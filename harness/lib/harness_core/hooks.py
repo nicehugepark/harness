@@ -50,6 +50,47 @@ def identity(payload: dict) -> dict:
     }
 
 
+def response_text(payload: dict) -> str:
+    """판정 대상 응답 전문을 얻는다.
+
+    **입력 선택이 이 게이트의 정확성을 지배한다.** 실측(2026-07-29T11:25):
+    Stop 훅 입력에 `last_assistant_message` 가 문자열로 최종 응답 전문을 담고,
+    같은 시점의 전사 파일에는 최종 응답이 **아직 없다**(전사 4줄, 최종 응답 부재).
+
+    전사를 읽으면 직전 턴의 산문을 판정하게 되고, 머리 표기가 있는 응답이
+    차단된다 — 실제로 그 오차단이 났다. 오차단은 시정 경로를 봉쇄하는
+    최악형이므로(S§9.3-14) 입력은 플랫폼이 주는 값을 1순위로 쓴다.
+
+    둘 다 없으면 빈 문자열을 돌려준다 — 호출부는 이것을 '위반'이 아니라
+    '판정 불가'로 다뤄야 한다(침묵과 무위반의 구별 — S§7).
+    """
+    lam = payload.get("last_assistant_message")
+    if isinstance(lam, str) and lam.strip():
+        return lam
+    if isinstance(lam, dict):
+        content = lam.get("content") or []
+        joined = "".join(b.get("text", "") for b in content
+                         if isinstance(b, dict) and b.get("type") == "text")
+        if joined.strip():
+            return joined
+    tp = payload.get("transcript_path")
+    if tp and pathlib.Path(tp).exists():
+        try:
+            for ln in reversed(pathlib.Path(tp).read_text(
+                    encoding="utf-8").splitlines()):
+                rec = json.loads(ln)
+                if rec.get("type") != "assistant":
+                    continue
+                content = rec.get("message", {}).get("content", [])
+                txt = "".join(b.get("text", "") for b in content
+                              if isinstance(b, dict) and b.get("type") == "text")
+                if txt.strip():
+                    return txt
+        except (OSError, json.JSONDecodeError):
+            return ""
+    return ""
+
+
 def emit(obj: dict | None = None) -> None:
     print(json.dumps(obj or {}, ensure_ascii=False))
 
@@ -208,7 +249,10 @@ def observe_honorific(text: str) -> dict:
     """
     body = re.sub(r"```.*?```", "", text or "", flags=re.S)
     body = re.sub(r"^\s*[|>].*$", "", body, flags=re.M)
-    sents = [s.strip() for s in re.split(r"[.!?\n]+", body) if len(s.strip()) > 8]
+    # 길이 하한을 3으로 둔다. 8로 두면 "완료했습니다" 같은 짧은 문장이 통째로
+    # 빠지는데, 그런 문장이야말로 이 관측이 세려는 대상이다 — 하한이 대상을
+    # 삼키면 계수는 0에 수렴하고 관측 자체가 무의미해진다.
+    sents = [s.strip() for s in re.split(r"[.!?\n]+", body) if len(s.strip()) > 2]
     ko = [s for s in sents if re.search(r"[가-힣]", s)]
     polite = [s for s in ko if s.rstrip().endswith(HONORIFIC_ENDINGS)]
     return {"korean_sentences": len(ko), "polite": len(polite),
