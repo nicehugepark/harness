@@ -103,7 +103,7 @@ def read_events(root: pathlib.Path, limit: int = EVENT_LIMIT) -> list[dict]:
 
 
 def live_sessions() -> list[dict]:
-    pat = "".join(["req", "uest-pipe", "line"])
+    pat = "workflows/request.js"
     r = subprocess.run(["pgrep", "-af", pat], capture_output=True, text=True)
     out = []
     for line in r.stdout.splitlines():

@@ -35,7 +35,9 @@ def collect(root: pathlib.Path) -> dict:
             reqs.append({"id": m.get("id"), "state": schema.read_state(m),
                          "session_ref": m.get("session_ref"),
                          "title": m.get("title")})
-    pat = "".join(["req", "uest-pipe", "line"])
+    # 프롬프트 문구로 세션을 세면 문구를 바꿀 때마다 계수가 0이 된다.
+    # 스폰 커맨드에 반드시 들어가는 **스크립트 경로**로 센다.
+    pat = "workflows/request.js"
     live = subprocess.run(["pgrep", "-cf", pat], capture_output=True, text=True)
     sessions = int(live.stdout.strip() or 0)
 
