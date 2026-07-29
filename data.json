@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T14:55:44+09:00",
+  "at": "2026-07-29T15:00:55+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,20 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "e1c8e613ac70",
-      "ts": "2026-07-29T04:29:21Z",
-      "stream": "agent-events",
-      "event": "prompt.submit",
-      "plane": "interactive",
-      "machine": "DESKTOP-7NNI7IS",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "len": 28,
-        "digest": "649b4c988250dfe3"
-      },
-      "_stream": "AU-20260729T042921Z-2e98211c-agent-events.jsonl"
-    },
     {
       "id": "29dbd1fc2aab",
       "ts": "2026-07-29T04:29:21Z",
@@ -2192,12 +2178,53 @@
         }
       },
       "_stream": "AU-20260729T055544Z-22c42126-agent-events.jsonl"
+    },
+    {
+      "id": "6143c857d951",
+      "ts": "2026-07-29T06:00:55Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T15:00:49+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T055544Z-22c42126-agent-events.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T055544Z-22c42126-agent-events.jsonl"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 4
+        },
+        "mirror": {
+          "copied": 2,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": true,
+          "ahead": 1,
+          "reason": ""
+        }
+      },
+      "_stream": "AU-20260729T060055Z-d878684b-agent-events.jsonl"
     }
   ],
   "sessions": [
     {
       "pid": "761616",
-      "elapsed": "45:04",
+      "elapsed": "50:15",
       "req": "RQ-20260729T040046Z-0f28a578"
     }
   ],
