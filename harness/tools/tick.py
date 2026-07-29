@@ -92,6 +92,20 @@ def kill_switch_on(root: pathlib.Path) -> bool:
     return (root / KILL_FILE_REL).exists()
 
 
+def _find_cli(root: pathlib.Path) -> str | None:
+    """머신 레코드의 실측값 → PATH 순. 설치기와 같은 규칙을 쓴다."""
+    import shutil
+    for f in (root / "config" / "machines").glob("*.json"):
+        try:
+            rec = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        cand = (rec.get("cli") or {}).get("claude")
+        if cand and pathlib.Path(os.path.expanduser(cand)).exists():
+            return os.path.expanduser(cand)
+    return shutil.which("claude")
+
+
 def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
                      engine: str) -> tuple[bool, str]:
     """B§3.1 — CLI 헤드리스로 요청 세션을 기동하고 B§2.1 입력을 넘긴다.
@@ -123,24 +137,36 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
         "HARNESS_SESSION": session_ref,
         "HARNESS_MACHINE": machine["machine_id"],
     }
+    # **요청 1건 = 세션 1개.** 이 세션이 실행 컨테이너이자 감사 경계이고,
+    # 단계별 에이전트는 이 세션이 스폰한다. 스텝마다 세션을 새로 여는 방식은
+    # 감사 경계를 요청이 아니라 스텝으로 잘라 "이 요청에서 무슨 일이 있었나"를
+    # 한 자리에서 답할 수 없게 만든다.
     prompt = (
-        "요청 세션을 시작합니다. 아래 인자만 사용하고, 이 프롬프트에 적히지 않은 "
-        "완료 기준·기준선을 추측하지 마십시오.\n"
+        "요청 세션을 시작합니다. `request-pipeline` 스킬의 절차를 따르십시오.\n"
         f"ledger_path={launch['ledger_path']}\n"
         f"baseline_ref={launch['baseline_ref']}\n"
         f"engine={launch['engine']}\n"
-        "첫 행동은 ledger_path 의 전문을 읽는 것입니다. 프롬프트 요약과 원장이 "
-        "어긋나면 원장을 따르고 불일치를 이벤트로 보고하십시오."
+        "첫 행동은 ledger_path 전문 읽기입니다. 이 프롬프트에 적히지 않은 완료 "
+        "기준·기준선을 추측하지 마십시오. 판정은 gatecheck.py 의 종료 코드가 "
+        "하며, 여러분이 통과를 선언하는 것은 판정이 아닙니다."
     )
     if machine.get("transport") == "ssh":
         return False, ("원격 dispatch 는 원격 실행 루트에 하네스가 설치돼 있어야 "
                        "한다 — 미설치 상태에서의 기동은 미등재 실행과 같은 클래스다")
-    cmd = ["claude", "-p", prompt, "--output-format", "json",
-           "--permission-mode", "auto"]
+    cli = _find_cli(root)
+    if not cli:
+        return False, "플랫폼 CLI 를 찾지 못했다 — 기동 불가"
+    cmd = [cli, "-p", prompt, "--output-format", "json",
+           "--permission-mode", "auto",
+           # 컨테이너 세션은 하위 에이전트를 스폰해야 하므로 Task 가 필요하다.
+           # 쓰기는 land.py·gatecheck.py 경유이므로 Bash 를 준다 — docs/ 직접
+           # 쓰기는 훅이 차단하므로 능력을 준다고 규약이 열리지 않는다.
+           "--tools", "Read,Grep,Glob,Bash,Write,Edit,Task,Workflow"]
     try:
         p = subprocess.Popen(cmd, cwd=str(root), env=env,
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                             start_new_session=True)
+                             stdout=open(root / "config/local" /
+                                         f"session-{session_ref}.log", "w"),
+                             stderr=subprocess.STDOUT, start_new_session=True)
     except OSError as exc:
         return False, str(exc)
     return True, f"pid={p.pid} session_ref={session_ref}"

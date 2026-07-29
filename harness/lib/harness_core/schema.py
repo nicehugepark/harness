@@ -150,11 +150,22 @@ def required_fields(meta: dict) -> list[str]:
     return fields
 
 
+# 빈 값이 **계약상 정당한** 필드. 어느 필드가 공집합을 허용하는지는 필드마다
+# 다르고 그 차이가 곧 계약이다 — 일률로 "빈 값 = 결손"으로 세면 의존 없는
+# 요청이 착지할 수 없고(A§4.2 "필수(공집합 허용)"), 일률로 허용하면 태그가
+# 비어도 통과해 선행 운영의 96% 빈 태그가 재현된다.
+EMPTY_ALLOWED = {"depends_on", "participants", "refs", "options", "incidents",
+                 "prevention_refs"}
+
+
 def missing_required(meta: dict) -> list[str]:
     out = []
     for f in required_fields(meta):
         v = meta.get(f)
-        if v is None or (isinstance(v, (str, list, dict)) and len(v) == 0):
+        if v is None:
+            out.append(f)
+        elif isinstance(v, (str, list, dict)) and len(v) == 0 \
+                and f not in EMPTY_ALLOWED:
             out.append(f)
     return out
 

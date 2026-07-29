@@ -351,3 +351,28 @@ def test_e18_is_skipped_when_no_scanlist_exists():
     검사 생략으로 다룬다. 설치 전 구간이 정상적으로 존재한다."""
     r = _land(_doc(), _tmp())
     assert r.ok, r.code
+
+
+def test_empty_collection_is_allowed_where_the_contract_says_so():
+    """A§4.2 — depends_on 은 '필수(공집합 허용)'다. 빈 목록을 결손으로 세면
+    의존 없는 요청이 착지할 수 없고, 그것은 계약과 정반대다.
+
+    반대로 tags 는 자동 축이 들어가므로 공집합이 성립하지 않는다 — 어느 필드가
+    빈 값을 허용하는지는 필드마다 다르고, 그 목록이 계약이다."""
+    assert "depends_on" in schema.EMPTY_ALLOWED
+    assert "tags" not in schema.EMPTY_ALLOWED
+    assert "depends_on" not in schema.missing_required(
+        {"type": "RQ", "schema": 2, "depends_on": []})
+    assert "tags" in schema.missing_required({"type": "DS", "schema": 2, "tags": []})
+
+
+def test_request_with_no_dependencies_lands():
+    m = _meta(type="RQ", id="RQ-20260729T010000Z-22222222", stage=None,
+              priority=1, weight="light", depends_on=[], output_kind="code",
+              state="received")
+    m.pop("stage", None)
+    body = ("## 요약\n\n내용.\n\n## 원문\n\n발화.\n\n## 완료 기준\n\n"
+            "```yaml\ncriteria:\n  - what: \"조건\"\n    how: \"명령\"\n"
+            "    pass: \"0건\"\n```\n\n## 본문\n\n규율 항목 없음\n")
+    r = _land(_doc(m, body), _tmp())
+    assert r.ok, f"{r.code} {r.detail}"
