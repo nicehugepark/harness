@@ -63,6 +63,20 @@ def main() -> int:
     print(f"  증분 미러  : {out['mirror']['copied']}건")
     pub = out.get("publish") or {}
     print(f"  게시       : {'완료 ' + str(pub.get('ahead')) + '커밋' if pub.get('pushed') else pub.get('reason')}")
+
+    # 대시보드는 배치 커밋·게시 **뒤**에 접는다 — 앞에 두면 화면이 방금 커밋된
+    # 것을 못 본 상태로 게시된다.
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "_harness_dash", pathlib.Path(__file__).with_name("dashboard.py"))
+        dash = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(dash)
+        dash.generate(root)
+        ok, why = dash.publish(root)
+        print(f"  대시보드   : {'게시 ' + why if ok else '실패 — ' + why}")
+    except Exception as exc:                              # noqa: BLE001
+        print(f"  대시보드   : 실패 — {exc}")
     # 저장소 부재는 이 잡의 실패가 아니다 — 구성 사실이다. 미보존만 실패로 센다.
     return 1 if out["reality"].get("missing") else 0
 
