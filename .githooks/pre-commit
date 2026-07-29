@@ -1,0 +1,12 @@
+#!/bin/sh
+# 정제 스캔 게이트 — 검출이 0이 아니면 커밋하지 않는다(DN R1).
+# 규율로 두면 어겨진다: 이 훅을 만든 계기가 그 규율을 만든 사람이 같은 턴에
+# 그것을 어긴 것이다(2026-07-29T11:31, 커밋 cc2752e — 검출 2건 상태로 커밋).
+ROOT=$(git rev-parse --show-toplevel)
+python3 "$ROOT/harness/tools/sanitize.py" || {
+  echo ""
+  echo "정제 스캔 검출 — 커밋을 중단합니다."
+  echo "  검출을 0으로 만들거나, 오탐이면 sanitize.py 의 SUPPRESS 에 사유와 함께 등재하십시오."
+  echo "  억제 규칙은 사유와 같은 넓이여야 합니다 — 넓게 닫으면 실 위반을 삼킵니다."
+  exit 1
+}
