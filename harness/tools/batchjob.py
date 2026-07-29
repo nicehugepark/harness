@@ -61,6 +61,8 @@ def main() -> int:
         print(f"  커밋 실재  : 미보존 {len(out['reality']['missing'])}건")
     print(f"  인덱스     : {out['index']}")
     print(f"  증분 미러  : {out['mirror']['copied']}건")
+    pub = out.get("publish") or {}
+    print(f"  게시       : {'완료 ' + str(pub.get('ahead')) + '커밋' if pub.get('pushed') else pub.get('reason')}")
     # 저장소 부재는 이 잡의 실패가 아니다 — 구성 사실이다. 미보존만 실패로 센다.
     return 1 if out["reality"].get("missing") else 0
 
