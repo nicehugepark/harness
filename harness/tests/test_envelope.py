@@ -180,3 +180,40 @@ def test_incident_id_folds_repeat_detections():
     a = envelope.incident_key_id("m01-wsl", "lint", "slot-missing")
     b = envelope.incident_key_id("m01-wsl", "lint", "slot-missing")
     assert a == b and a.startswith("FI-")
+
+
+# ── 시스템 생산자(요청에 속하지 않는 발신원) ────────────────────
+def test_system_plane_does_not_require_request_identity():
+    """스케줄러 틱·프로브는 **요청 실행이 아니다** — req·role 이 원리적으로 없다.
+
+    D§2.2 는 `plane ≠ interactive` 이면 req·role 을 필수로 걸었는데, 그 조건은
+    plane enum 이 workflow·loop·interactive 3값인 전제에서 쓰였다. 시스템
+    발신원이 그 3값 어디에도 안 맞아 결정 로그가 통째로 recorder-health 로
+    우회됐다(실측 2026-07-29T03:17 — 틱 로그 2건 우회).
+
+    빈 자리를 메우는 방향은 두 가지였다: ①req 필수 조건을 푼다 ②시스템 평면을
+    신설한다. ①은 요청 실행 레코드의 주체 미상까지 허용하므로 기각했다 —
+    "누가"를 답하지 못하는 기록은 재발 방지에 쓸 수 없다.
+    """
+    root = _tmp()
+    ident = {"machine": "m01", "session": "tick-1", "plane": "system"}
+    w = envelope.Writer(root_dir=root, stream="sched-decisions", identity=ident)
+    r = w.append("sched.tick", {"tick_id": "abc"})
+    assert r.ok and r.diverted is False and r.stream == "sched-decisions"
+
+
+def test_workflow_plane_still_requires_request_identity():
+    root = _tmp()
+    ident = {"machine": "m01", "session": "s1", "plane": "workflow"}   # req 없음
+    w = envelope.Writer(root_dir=root, stream="agent-events", identity=ident)
+    assert w.append("x.y", {}).diverted is True
+
+
+def test_plane_enum_is_closed_and_rejects_unknown():
+    root = _tmp()
+    try:
+        envelope.Writer(root_dir=root, stream="agent-events",
+                        identity={"machine": "m", "session": "s", "plane": "made-up"})
+    except ValueError:
+        return
+    raise AssertionError("plane enum 밖 값은 거부해야 한다")

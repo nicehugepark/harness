@@ -75,8 +75,16 @@ STREAMS = {
 
 REQUIRED_ENVELOPE_FIELDS = ["id", "ts", "stream", "event", "plane", "machine",
                             "session", "data"]
-# plane ≠ interactive 이면 req·role 도 필수(D§2.2 조건부)
+# D§2.2 조건부 — 요청 실행 평면에서만 req·role 이 필수다.
 CONDITIONAL_FIELDS = ["req", "role"]
+
+# plane enum. `system` 은 **요청에 속하지 않는 발신원**(스케줄러 틱·리소스 프로브)
+# 자리다. 초안 enum 이 3값이라 그 발신원이 어디에도 맞지 않았고, 결정 로그가
+# 통째로 dead-letter 로 우회됐다(실측 2026-07-29T03:17).
+# req 필수 조건을 푸는 대신 평면을 신설한 근거: 조건을 풀면 요청 실행 레코드의
+# 주체 미상까지 허용되고, "누가"를 답하지 못하는 기록은 재발 방지에 쓸 수 없다.
+PLANES = ["workflow", "loop", "interactive", "system"]
+REQUEST_PLANES = ["workflow", "loop"]
 
 
 @dataclasses.dataclass
@@ -131,6 +139,9 @@ class Writer:
     def __init__(self, *, root_dir, stream: str, identity: dict,
                  append_mode: str = "atomic", rotate_bytes: int = 8 * 1024 * 1024,
                  rotate_lines: int = 10_000):
+        plane = identity.get("plane")
+        if plane is not None and plane not in PLANES:
+            raise ValueError(f"plane enum 밖: {plane!r} — 허용 {PLANES}")
         if stream not in STREAMS:
             raise ValueError(
                 f"미등재 스트림(R23 — 4계약 등재와 같은 커밋에서만 신설): {stream!r}"
@@ -227,7 +238,7 @@ class Writer:
 
     def _missing_envelope_fields(self, rec: dict) -> list[str]:
         lack = [f for f in REQUIRED_ENVELOPE_FIELDS if rec.get(f) in (None, "")]
-        if rec.get("plane") and rec["plane"] != "interactive":
+        if rec.get("plane") in REQUEST_PLANES:
             lack += [f for f in CONDITIONAL_FIELDS if rec.get(f) in (None, "")]
         return lack
 
