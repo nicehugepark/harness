@@ -194,7 +194,66 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
         ledger.release(root, req["path"], session_ref,
                        to_state="received" if stage == "analysis" else "queued")
         return False, str(exc)
+    # B§3.6 종료 실증 인터록의 전제: **살아 있음의 증거를 남긴다.**
+    # pid 를 남기지 않으면 lease 가 붙은 요청이 죽은 세션의 것인지 도는 세션의
+    # 것인지 판정할 수 없고, 그 판정 불능이 곧 사람이 손으로 푸는 자리가 된다.
+    try:
+        (root / "config/local" / f"lease-{session_ref}.json").write_text(
+            json.dumps({"pid": p.pid, "req": req["id"], "path": req["path"],
+                        "stage": stage, "at": clock.iso_local()},
+                       ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
     return True, f"pid={p.pid} session_ref={session_ref}"
+
+
+def _alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+        return True
+    except (ProcessLookupError, ValueError):
+        return False
+    except PermissionError:
+        return True
+
+
+def recover_orphans(root: pathlib.Path, reqs: list[dict]) -> list[dict]:
+    """lease 는 붙어 있는데 그 세션이 없는 요청을 회수한다(B§3.6).
+
+    **침묵은 사망 판정이 아니다** — 그래서 침묵이 아니라 프로세스 부재를 본다.
+    실증 파일이 없는 lease(구판 스폰·수기 점유)는 회수하지 않고 표면화만 한다.
+    잘못 회수하면 도는 세션과 새 세션이 같은 요청을 동시에 쓴다.
+    """
+    out = []
+    pol = policy.load(root)
+    limit = int(pol.get("R_restart", 2))
+    for r in reqs:
+        ref = r.get("session_ref")
+        if not ref:
+            continue
+        lf = root / "config/local" / f"lease-{ref}.json"
+        if not lf.exists():
+            out.append({"req_id": r["id"], "action": "표면화",
+                        "reason": "실증 파일 없음 — 회수 판정 불가"})
+            continue
+        try:
+            pid = int(json.loads(lf.read_text(encoding="utf-8"))["pid"])
+        except (OSError, ValueError, KeyError):
+            continue
+        if _alive(pid):
+            continue
+        restarts = int(r.get("restart_count") or 0)
+        to = "queued" if restarts < limit else "hold"
+        ok, why = ledger.release(root, r["path"], ref, to_state=to)
+        if ok:
+            try:
+                lf.unlink()
+            except OSError:
+                pass
+        out.append({"req_id": r["id"], "action": f"회수→{to}",
+                    "reason": f"pid {pid} 부재 · 재기동 {restarts}/{limit}",
+                    "ok": ok, "detail": why})
+    return out
 
 
 def main() -> int:
@@ -230,6 +289,19 @@ def main() -> int:
             w.append("sched.idle_defect", {"tick_id": out["decision_log"]["tick_id"]})
     except Exception as exc:                       # noqa: BLE001
         print(f"[warn] 결정 로그 착지 실패: {exc}", file=sys.stderr)
+
+    # 배분보다 **회수가 먼저**다. 죽은 lease 를 남긴 채 배분하면 그 요청은
+    # claim 거부로 영영 기동되지 않는다 — 오늘 세 번 사람이 손으로 풀었다.
+    recovered = recover_orphans(root, reqs)
+    for rv in recovered:
+        print(f"  회수 {rv['req_id']}: {rv['action']} — {rv['reason']}")
+    if recovered:
+        reqs = load_ledger(root)
+        queued = [r for r in reqs if r["state"] == "queued"]
+        running = [r for r in reqs if r["state"] in pipeline.ACTIVE_EXEC_STATES]
+        out = scheduler.tick(queued, machines, now=now,
+                             running=running, kill_switch=kill_switch_on(root),
+                             trigger=args.trigger)
 
     dispatched = []
     by_machine = {m["machine_id"]: m for m in machines}
