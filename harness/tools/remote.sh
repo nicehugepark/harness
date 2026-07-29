@@ -26,41 +26,27 @@ rsh() { ssh -o BatchMode=yes -o ConnectTimeout=10 -p "$RPORT" "$RUSER@$RHOST" "$
 
 case "$1" in
   sync)
+    # **코드는 git 으로 간다.** tar 로 덮어쓰던 방식은 원격에 미커밋 수정을
+    # 만들어 원격의 git merge 를 막았다(실측 2026-07-29T05:18 — "Please move or
+    # remove them before you merge"). 원격이 배포 키를 갖게 됐으므로 정본
+    # 경로(커밋 → push → pull)를 쓴다. 파일 복사는 무시 규칙을 우회한다.
     cd "$ROOT"
-    # **코드만 보낸다. docs/ 는 절대 보내지 않는다.**
-    #
-    # 원격이 주 실행 머신이므로 그 머신의 docs/ 가 **살아 있는 원장**이다.
-    # 로컬본으로 덮으면 진행 중인 요청의 state 와 lease 가 사라지고, 다음 틱이
-    # 같은 요청을 다시 기동한다 — 실사고 2026-07-29T04:49: sync 직후 원장이
-    # designing→queued 로 되돌아가 lease 를 잃었다.
-    #
-    # 추적 + 미추적을 함께 보내는 이유는 그대로다(미커밋 작업이 조용히 빠지면
-    # 원격 결과가 과소 보고된다 — 실측 원격 118 대 로컬 168).
-    git ls-files -co --exclude-standard -z \
-      | tr "\0" "\n" | grep -v "^docs/" | tr "\n" "\0" \
-      | tar --null -T - -czf /tmp/_hsync.tgz
-    # 원격 루트를 통째로 지우지 않는다. config/·vault/·derived/·.claude/ 는
-    # **그 머신의 로컬 상태**(머신 편성·이름 레지스트리·설치 저널·볼트)이고
-    # 버전관리 밖이라 tar 에 실리지 않는다 — 지우면 복구 경로가 없다.
-    # 실사고 2026-07-29T03:39: sync 가 매번 원격 config/ 를 파괴해 사람이 적용한
-    # 동시성 상한 오버라이드가 조용히 사라졌고, 같은 값을 두 번 다시 적용했다.
-    rsh "mkdir -p $RROOT"
-    # 추적 트리만 정리한다(사라진 파일이 남지 않게). 로컬 상태 디렉토리는 제외.
-    # docs/ 는 정리 대상에서도 뺀다 — 원격 원장은 로컬이 관여하지 않는다
-    rsh "cd $RROOT && rm -rf harness README.md .githooks"
-    cat /tmp/_hsync.tgz | rsh "tar xzf - -C $RROOT"
-    rsh "cd $RROOT && mkdir -p config/local config/names config/machines \
-         config/install/journal vault derived .claude fake-home/.claude"
-    # 정제 목록은 저장소 밖이지만 **게이트가 없으면 커밋을 못 한다**.
-    # 목록 부재를 '검출 0'으로 읽지 않는 것이 계약이므로, 목록을 배포하지 않으면
-    # 그 머신은 영원히 커밋할 수 없다(실측 2026-07-29T04:52 — 원격 배치 커밋 차단).
+    if [ -n "$(git status --porcelain)" ]; then
+      echo "  로컬에 미커밋 변경이 있다 — 커밋 후 다시 실행하라" >&2
+      git status --short | head -5 >&2
+      exit 1
+    fi
+    git push -q origin main
+    rsh "cd $RROOT && git fetch -q origin main && git merge --no-edit -q origin/main" \
+      && echo "  원격 pull 완료"
+    # 정제 목록은 저장소 밖이지만 게이트가 필요로 하는 정책이라 별도로 배포한다
     if [ -f "$ROOT/config/local/sanitize-scanlist.txt" ]; then
       cat "$ROOT/config/local/sanitize-scanlist.txt" \
         | rsh "cat > $RROOT/config/local/sanitize-scanlist.txt"
-      echo "  정제 목록 배포"
     fi
-    N=$(git ls-files -co --exclude-standard | grep -vc "^docs/")
-    echo "동기 완료: $N 파일 (코드만 — docs/ 는 원격 원장이라 보내지 않는다)"
+    rsh "cd $RROOT && mkdir -p config/local config/names config/machines \
+         config/install/journal vault derived .claude fake-home/.claude"
+    echo "동기 완료: git 경로 (원격 HEAD $(rsh "cd $RROOT && git rev-parse --short HEAD"))"
     ;;
   run) shift; rsh "cd $RROOT && $*" ;;
   verify)
