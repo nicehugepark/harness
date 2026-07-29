@@ -81,8 +81,9 @@ case "$1" in
       || git remote add jade "ssh://$RUSER@$RHOST:$RPORT/~/workspace"
     git fetch -q jade main
     echo "원격 HEAD: $(git rev-parse --short jade/main)"
-    git merge --ff-only jade/main 2>&1 | tail -1 \
-      || echo "  fast-forward 불가 — 로컬에 원격에 없는 커밋이 있다(수동 병합 필요)"
+    # 양쪽이 각자 커밋하는 것이 정상이다 — 원격은 원장을, 로컬은 코드를 쓴다.
+    # 그래서 ff-only 는 성립하지 않고 병합이 정상 경로다.
+    git merge --no-edit jade/main 2>&1 | tail -2
     ;;
   push-upstream)
     cd "$ROOT"; git push origin main 2>&1 | tail -2 ;;
