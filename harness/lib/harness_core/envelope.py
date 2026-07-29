@@ -103,6 +103,35 @@ class HammerResult:
     id_losses: int
 
 
+def resolve_machine_alias(root, node: str) -> str:
+    """D§2.2 — `machine` 은 **머신 별칭**이고 정본은 머신 설정 파일이다.
+
+    호스트명 원문을 그대로 실으면 공개 트리에 머신 식별자가 노출된다.
+    별칭을 찾지 못하면 호스트명의 해시 접두를 쓴다 — 원문을 싣느니 익명 안정
+    식별자를 싣는다(조인은 여전히 가능하다).
+    """
+    import hashlib
+    import json as _json
+    base = pathlib.Path(root) / "config" / "machines"
+    if base.exists():
+        for f in base.glob("*.json"):
+            try:
+                rec = _json.loads(f.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if rec.get("probe", {}).get("node") == node or \
+                    rec.get("hostname") == node:
+                return rec.get("display_alias") or rec["machine_id"]
+        # 머신이 하나뿐이면 그것이 이 머신이다
+        recs = list(base.glob("*.json"))
+        if len(recs) == 1:
+            try:
+                return _json.loads(recs[0].read_text(encoding="utf-8"))["machine_id"]
+            except (OSError, ValueError, KeyError):
+                pass
+    return "m-" + hashlib.sha256(node.encode()).hexdigest()[:10]
+
+
 def incident_key_id(machine: str, axis: str, violation: str) -> str:
     """A§3.2 — 동일 주체·맥락·위반은 하나의 사건 ID 로 수렴한다."""
     return ids.incident_id(f"machine={machine}|axis={axis}|violation={violation}")

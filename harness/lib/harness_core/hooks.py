@@ -40,8 +40,12 @@ def root_dir(payload: dict) -> pathlib.Path:
 def identity(payload: dict) -> dict:
     """D§3 — 신원은 기동 주체가 발급하고 훅은 전파만 한다."""
     import platform
+    from . import envelope as _env
+    machine = os.environ.get(ENV_MACHINE)
+    if not machine:
+        machine = _env.resolve_machine_alias(root_dir(payload), platform.node())
     return {
-        "machine": os.environ.get(ENV_MACHINE) or platform.node(),
+        "machine": machine,
         "session": payload.get("session_id") or os.environ.get(ENV_SESSION) or "",
         "plane": os.environ.get(ENV_PLANE, "interactive"),
         "req": os.environ.get(ENV_REQ),

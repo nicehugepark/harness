@@ -27,10 +27,18 @@ rsh() { ssh -o BatchMode=yes -o ConnectTimeout=10 -p "$RPORT" "$RUSER@$RHOST" "$
 case "$1" in
   sync)
     cd "$ROOT"
-    # 추적 + 미추적(무시 규칙 밖) 둘 다 보낸다.
-    # 추적만 보내면 **미커밋 작업이 조용히 빠지고** 원격 결과가 과소 보고된다
-    # (실측 2026-07-29T03:22 — 원격 118 대 로컬 168, 새 시험 3파일이 미커밋이었다).
-    git ls-files -co --exclude-standard -z | tar --null -T - -czf /tmp/_hsync.tgz
+    # **코드만 보낸다. docs/ 는 절대 보내지 않는다.**
+    #
+    # 원격이 주 실행 머신이므로 그 머신의 docs/ 가 **살아 있는 원장**이다.
+    # 로컬본으로 덮으면 진행 중인 요청의 state 와 lease 가 사라지고, 다음 틱이
+    # 같은 요청을 다시 기동한다 — 실사고 2026-07-29T04:49: sync 직후 원장이
+    # designing→queued 로 되돌아가 lease 를 잃었다.
+    #
+    # 추적 + 미추적을 함께 보내는 이유는 그대로다(미커밋 작업이 조용히 빠지면
+    # 원격 결과가 과소 보고된다 — 실측 원격 118 대 로컬 168).
+    git ls-files -co --exclude-standard -z \
+      | tr "\0" "\n" | grep -v "^docs/" | tr "\n" "\0" \
+      | tar --null -T - -czf /tmp/_hsync.tgz
     # 원격 루트를 통째로 지우지 않는다. config/·vault/·derived/·.claude/ 는
     # **그 머신의 로컬 상태**(머신 편성·이름 레지스트리·설치 저널·볼트)이고
     # 버전관리 밖이라 tar 에 실리지 않는다 — 지우면 복구 경로가 없다.
@@ -38,12 +46,21 @@ case "$1" in
     # 동시성 상한 오버라이드가 조용히 사라졌고, 같은 값을 두 번 다시 적용했다.
     rsh "mkdir -p $RROOT"
     # 추적 트리만 정리한다(사라진 파일이 남지 않게). 로컬 상태 디렉토리는 제외.
-    rsh "cd $RROOT && rm -rf docs/design docs/reference docs/requests harness README.md .githooks"
+    # docs/ 는 정리 대상에서도 뺀다 — 원격 원장은 로컬이 관여하지 않는다
+    rsh "cd $RROOT && rm -rf harness README.md .githooks"
     cat /tmp/_hsync.tgz | rsh "tar xzf - -C $RROOT"
     rsh "cd $RROOT && mkdir -p config/local config/names config/machines \
          config/install/journal vault derived .claude fake-home/.claude"
-    N=$(git ls-files -co --exclude-standard | wc -l)
-    echo "동기 완료: $N 파일 (추적 $(git ls-files | wc -l) + 미추적 $((N-$(git ls-files | wc -l))))"
+    # 정제 목록은 저장소 밖이지만 **게이트가 없으면 커밋을 못 한다**.
+    # 목록 부재를 '검출 0'으로 읽지 않는 것이 계약이므로, 목록을 배포하지 않으면
+    # 그 머신은 영원히 커밋할 수 없다(실측 2026-07-29T04:52 — 원격 배치 커밋 차단).
+    if [ -f "$ROOT/config/local/sanitize-scanlist.txt" ]; then
+      cat "$ROOT/config/local/sanitize-scanlist.txt" \
+        | rsh "cat > $RROOT/config/local/sanitize-scanlist.txt"
+      echo "  정제 목록 배포"
+    fi
+    N=$(git ls-files -co --exclude-standard | grep -vc "^docs/")
+    echo "동기 완료: $N 파일 (코드만 — docs/ 는 원격 원장이라 보내지 않는다)"
     ;;
   run) shift; rsh "cd $RROOT && $*" ;;
   verify)
@@ -55,6 +72,20 @@ case "$1" in
       wait' >/dev/null 2>&1 &"
     echo "원격 병렬 검증 기동 — remote.sh results 로 확인"
     ;;
+  pull)
+    # 원격 원장을 로컬로 당긴다. **원격에 GitHub 자격증명을 두지 않는** 방향이다 —
+    # 주 실행 머신에 배포 자격증명을 두면 그 머신이 유출 표면이 되고, 그것을
+    # 볼트로 관리해도 사용 시점에 프로세스 환경으로 새어 나간다.
+    cd "$ROOT"
+    git remote get-url jade >/dev/null 2>&1 \
+      || git remote add jade "ssh://$RUSER@$RHOST:$RPORT/~/workspace"
+    git fetch -q jade main
+    echo "원격 HEAD: $(git rev-parse --short jade/main)"
+    git merge --ff-only jade/main 2>&1 | tail -1 \
+      || echo "  fast-forward 불가 — 로컬에 원격에 없는 커밋이 있다(수동 병합 필요)"
+    ;;
+  push-upstream)
+    cd "$ROOT"; git push origin main 2>&1 | tail -2 ;;
   results)
     for f in /tmp/v-tests.log /tmp/v-iv1.log /tmp/v-gen.log; do
       echo "--- $f"; rsh "tail -2 $f 2>/dev/null || echo '(아직 없음)'"
