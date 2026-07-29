@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T14:52:05+09:00",
+  "at": "2026-07-29T14:55:44+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,37 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "ac433cd719ec",
-      "ts": "2026-07-29T04:21:43Z",
-      "stream": "agent-events",
-      "event": "doc.landed",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "09ba45ca",
-      "data": {
-        "id": "DS-20260729T042143Z-8dee6d1f",
-        "path": "docs/design/public/2026/07/DS-20260729T042143Z-8dee6d1f.md"
-      },
-      "req": "RQ-20260729T040046Z-0f28a578",
-      "role": "architect",
-      "agent": "architect",
-      "_stream": "AU-20260729T042143Z-35678714-agent-events.jsonl"
-    },
-    {
-      "id": "9272670a27e6",
-      "ts": "2026-07-29T04:28:34Z",
-      "stream": "agent-events",
-      "event": "prompt.submit",
-      "plane": "interactive",
-      "machine": "DESKTOP-7NNI7IS",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "len": 112,
-        "digest": "d687110875e51d28"
-      },
-      "_stream": "AU-20260729T042834Z-0d77510f-agent-events.jsonl"
-    },
     {
       "id": "e1c8e613ac70",
       "ts": "2026-07-29T04:29:21Z",
@@ -2162,12 +2131,73 @@
         }
       },
       "_stream": "AU-20260729T055205Z-109bdd10-agent-events.jsonl"
+    },
+    {
+      "id": "388861295e2a",
+      "ts": "2026-07-29T05:54:51Z",
+      "stream": "agent-events",
+      "event": "doc.landed",
+      "plane": "workflow",
+      "machine": "18f97fd8ca3a",
+      "session": "9c790b18",
+      "data": {
+        "id": "DS-20260729T055451Z-a533c59c",
+        "path": "docs/design/public/2026/07/DS-20260729T055451Z-a533c59c.md"
+      },
+      "req": "RQ-20260729T040046Z-0f28a578",
+      "role": "architect",
+      "agent": "architect",
+      "_stream": "AU-20260729T055451Z-3f6852a7-agent-events.jsonl"
+    },
+    {
+      "id": "997ce68da7e9",
+      "ts": "2026-07-29T05:55:44Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T14:55:39+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T055205Z-109bdd10-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T055451Z-3f6852a7-agent-events.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T055205Z-109bdd10-agent-events.jsonl",
+            "docs/audit/public/2026/07/AU-20260729T055451Z-3f6852a7-agent-events.jsonl",
+            "docs/design/public/2026/07/DS-20260729T055451Z-a533c59c.md"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 4
+        },
+        "mirror": {
+          "copied": 2,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": true,
+          "ahead": 1,
+          "reason": ""
+        }
+      },
+      "_stream": "AU-20260729T055544Z-22c42126-agent-events.jsonl"
     }
   ],
   "sessions": [
     {
       "pid": "761616",
-      "elapsed": "41:25",
+      "elapsed": "45:04",
       "req": "RQ-20260729T040046Z-0f28a578"
     }
   ],
