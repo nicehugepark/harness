@@ -118,3 +118,45 @@ def test_honorific_observer_excludes_code_fences():
     text = "완료했습니다.\n```\nprint('반말이다')\n```\n"
     r = H.observe_honorific(text)
     assert r["korean_sentences"] == 1
+
+
+# ── 드리프트 기준점 오류 (실사고 2026-07-29T03:26) ──────────────
+def test_long_turn_with_honestly_measured_head_is_not_blocked():
+    """실사고: 머리 표기를 **턴 시작 시각**과 대조했더니, 19분짜리 턴에서
+    정직하게 잰 시각이 1,160초 벌어져 차단됐다.
+
+    두 값이 같아야 할 이유가 애초에 없는 짝이었다. 응답 대기 무제한이 정책인
+    한(S§4.4), 턴 길이를 상한으로 가정하는 검사는 전부 오차단을 만든다 —
+    B§3.6 이 고아 판정에서 같은 함정을 이미 기록했다.
+    """
+    head = "[2026-07-29T12:26:41+09:00 · 타치코마 · lead]\n본문"
+    ok, why = H.check_head(
+        head, registry_names={"타치코마"}, role_keys={"lead"}, drift_cap_s=900,
+        turn_started_at=clock.parse_iso("2026-07-29T12:07:21+09:00"),
+        now=clock.parse_iso("2026-07-29T12:26:50+09:00"))
+    assert ok, why
+
+
+def test_stale_head_reused_from_an_earlier_turn_is_blocked():
+    """옛 값을 재사용하면 Stop 시각과 벌어진다 — 그것이 잡으려던 축이다."""
+    head = "[2026-07-29T11:00:00+09:00 · 타치코마 · lead]\n본문"
+    ok, why = H.check_head(
+        head, registry_names={"타치코마"}, role_keys={"lead"}, drift_cap_s=900,
+        turn_started_at=clock.parse_iso("2026-07-29T12:07:21+09:00"),
+        now=clock.parse_iso("2026-07-29T12:26:50+09:00"))
+    assert not ok and "벌어졌습니다" in why
+
+
+def test_head_time_in_the_future_is_blocked():
+    """미래 시각은 실측일 수 없다 — 방향을 가리지 않고 절댓값으로 잰다."""
+    head = "[2026-07-29T13:00:00+09:00 · 타치코마 · lead]\n본문"
+    ok, why = H.check_head(
+        head, registry_names={"타치코마"}, role_keys={"lead"}, drift_cap_s=900,
+        turn_started_at=clock.parse_iso("2026-07-29T12:07:21+09:00"),
+        now=clock.parse_iso("2026-07-29T12:26:50+09:00"))
+    assert not ok
+
+
+def test_reference_point_is_stop_time_not_turn_start():
+    """기준점이 무엇인지를 계약으로 고정한다 — 이 값이 바뀌면 판정이 바뀐다."""
+    assert H.DRIFT_REFERENCE == "stop-time"

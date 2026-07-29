@@ -169,13 +169,32 @@ HEAD_RE = re.compile(r"^\s*\[\s*([0-9T:\-+.Z]{19,32})\s*·\s*([^·\]]+?)\s*·\s*
                      r"([a-z][a-z0-9-]*)\s*\]")
 
 
+# 드리프트 대조의 **기준점**. 이 값이 바뀌면 판정이 통째로 바뀐다.
+#
+# 초안은 기준점을 `턴 시작 시각`으로 뒀다가 오차단을 냈다(실사고 2026-07-29T03:26
+# — 19분짜리 턴에서 정직하게 잰 머리 시각이 1,160초 벌어져 차단됐다).
+# 두 값이 같아야 할 이유가 애초에 없는 짝이었다: 응답 대기 무제한이 정책인 한
+# (S§4.4) 턴 길이는 상한을 가정할 수 없고, B§3.6 이 고아 판정에서 같은 함정을
+# 이미 기록했다("스텝 예상 시간 자체를 정할 수 없다").
+#
+# 기준점을 **Stop 시점의 실측 시각**으로 바꾸면 대조가 같은 짝이 된다 —
+# 응답 직전에 잰 값은 Stop 과 초 단위로 가깝고, 옛 값을 재사용하면 벌어진다.
+DRIFT_REFERENCE = "stop-time"
+
+
 def check_head(text: str, *, registry_names: set[str], role_keys: set[str],
-               drift_cap_s: int, injected_at) -> tuple[bool, str]:
+               drift_cap_s: int, now=None, turn_started_at=None,
+               injected_at=None) -> tuple[bool, str]:
     """머리 표기 3요소의 구조 검사 + 시각 드리프트 대조.
 
     구조 존재와 시각 대조는 결정론이므로 즉시 차단형이다(F§10.2 1·3행).
     존댓말은 여기서 판정하지 않는다 — 그 축은 관측형이다.
+
+    `turn_started_at` 은 판정에 쓰지 않고 **기록에만** 남긴다. 판정 기준은
+    `now`(Stop 시점 실측)이다 — 위 DRIFT_REFERENCE 주석의 근거.
     """
+    if now is None:
+        now = injected_at        # 하위 호환: 호출부가 아직 안 넘기는 경우
     m = HEAD_RE.search(text or "")
     if not m:
         return False, ("응답 머리 표기가 없습니다. 첫 줄에 "
@@ -188,15 +207,23 @@ def check_head(text: str, *, registry_names: set[str], role_keys: set[str],
         return False, (f"표시명이 이름 레지스트리에 없습니다: {name!r} — "
                        f"역할 키 단독 표기는 금지입니다")
     try:
-        d = clock.drift_seconds(at, injected_at)
+        d = clock.drift_seconds(at, now)
     except ValueError:
         return False, f"머리 표기 시각이 ISO 8601 초 단위가 아닙니다: {at!r}"
     if d is None:
         # 대조 불가는 통과가 아니라 '대조 불가'다. 구조는 통과시키되 사실을 남긴다.
-        return True, "시각 대조 불가 — 훅 주입값 부재(침묵과 무위반의 구별)"
+        return True, "시각 대조 불가 — 기준 시각 부재(침묵과 무위반의 구별)"
     if d > drift_cap_s:
-        return False, (f"머리 표기 시각이 훅 주입 실측값과 {int(d)}초 벌어졌습니다 "
-                       f"(상한 {drift_cap_s}초). 추정하지 말고 다시 재십시오.")
+        elapsed = ""
+        if turn_started_at is not None:
+            try:
+                secs = int((clock.parse_iso(at) - turn_started_at).total_seconds())
+                elapsed = f" (참고: 턴 시작 이후 {secs}초 경과 — 이 값은 판정에 쓰지 않습니다)"
+            except ValueError:
+                elapsed = ""
+        return False, (f"머리 표기 시각이 응답 종료 시점 실측값과 {int(d)}초 "
+                       f"벌어졌습니다 (상한 {drift_cap_s}초){elapsed}. "
+                       f"응답 직전에 다시 재십시오.")
     return True, ""
 
 

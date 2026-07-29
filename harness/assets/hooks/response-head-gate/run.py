@@ -39,7 +39,8 @@ def main():
     ok, why = H.check_head(text, registry_names=names,
                            role_keys=set(roster.ROLE_KEYS),
                            drift_cap_s=int(pol.get("head_time_drift_s", 900)),
-                           injected_at=injected)
+                           now=clock.now_utc(),          # 판정 기준 = Stop 시점 실측
+                           turn_started_at=injected)     # 기록용(판정에 쓰지 않는다)
     block = payload.get("stop_hook_active")
     gate_block = H.extract_gate_block(text)
     praise = H.scan_praise(gate_block, pol.get("praise_lexicon", []))
