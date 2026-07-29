@@ -146,6 +146,30 @@ def mirror_incremental(root, backup_root) -> dict:
     return {"copied": copied, "root": str(backup_root / "mirror")}
 
 
+def publish(root) -> dict:
+    """배치 커밋을 원격 저장소로 민다.
+
+    **기록이 그 머신에만 있으면 보존이 아니다**(S§3.8 — 썼다는 보존됐다가 아니다).
+    주 실행 머신이 커밋만 하고 push 하지 않으면 그 기록은 사람이 손으로 옮길
+    때까지 공개되지 않고, 대시보드는 낡은 것을 본다.
+
+    push 실패는 조용히 넘기지 않는다 — 반환값에 사유를 담아 호출부가 결함으로
+    다룰 수 있게 한다.
+    """
+    root = pathlib.Path(root)
+    if not has_repo(root):
+        return {"pushed": False, "reason": "저장소 부재"}
+    if not _git(root, "remote", "get-url", "origin").stdout.strip():
+        return {"pushed": False, "reason": "origin 없음 — 이 머신은 게시 대상이 아니다"}
+    _git(root, "fetch", "-q", "origin", "main")
+    ahead = _git(root, "rev-list", "--count", "origin/main..HEAD").stdout.strip()
+    if ahead in ("", "0"):
+        return {"pushed": False, "reason": "밀 커밋 없음", "ahead": 0}
+    r = _git(root, "push", "-q", "origin", "main")
+    return {"pushed": r.returncode == 0, "ahead": int(ahead),
+            "reason": r.stderr.strip()[:200] if r.returncode else ""}
+
+
 def drain_notify_queue(root, *, sender=None) -> dict:
     """훅이 예약한 발신 대기를 **배치가** 소비한다.
 
@@ -210,4 +234,5 @@ def run_all(root) -> dict:
     out["mirror"] = mirror_incremental(root, pol.get("backup_root",
                                                      "~/harness-backups"))
     out["notify"] = drain_notify_queue(root)
+    out["publish"] = publish(root)
     return out

@@ -191,3 +191,10 @@ def test_missing_repository_is_not_reported_as_lost_documents():
     (d / "docs/design/public/2026/07/DS-x.md").write_text("x", encoding="utf-8")
     out = B.verify_commit_reality(d)
     assert out["no_repo"] is True and out["missing"] == []
+
+
+def test_publish_reports_reason_when_it_cannot_push():
+    """push 실패를 조용히 넘기지 않는다 — 기록이 그 머신에만 있으면 보존이 아니다."""
+    d = _repo()
+    out = B.publish(d)
+    assert out["pushed"] is False and "origin" in out["reason"]
