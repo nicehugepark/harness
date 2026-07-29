@@ -4,10 +4,10 @@ id: RQ-20260728T170616Z-d0bc4127
 type: RQ
 title: 하네스 설계 프롬프트·설계 문서의 파이프라인 재생성 — 새 문서 규격 적용
 visibility: public
-state: queued
+state: designing
 root: d2a15684b7c4
 created: 2026-07-29 02:06:16+09:00
-updated: '2026-07-29T15:24:30+09:00'
+updated: '2026-07-29T15:29:24+09:00'
 machine: m01-wsl
 session: rehearsal-20260729-a
 author: document specialist
@@ -26,7 +26,7 @@ refs:
 priority: 2
 weight: heavy
 depends_on: []
-session_ref: null
+session_ref: 5a362518
 machine_assigned: 18f97fd8ca3a
 importance: 3
 rework_count: 0

@@ -4,10 +4,10 @@ id: RQ-20260728T180616Z-ef94bc02
 type: RQ
 title: 대시보드 설계 프롬프트 — 하네스 운영 대시보드 구축 요청 (판 0.4 — 채번 기준은 §10.3)
 visibility: public
-state: queued
+state: designing
 root: d2a15684b7c4
 created: 2026-07-29 03:06:16+09:00
-updated: '2026-07-29T15:19:57+09:00'
+updated: '2026-07-29T15:29:25+09:00'
 machine: rehearsal-m1
 session: rehearsal-s1
 author: document specialist
@@ -33,7 +33,7 @@ restart_count: 0
 merge_retry_count: 0
 blocked_on: null
 derived_from: null
-session_ref: null
+session_ref: 0764965f
 base_observed: null
 machine_assigned: 18f97fd8ca3a
 importance: 2
