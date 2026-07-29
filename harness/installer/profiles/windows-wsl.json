@@ -1,0 +1,24 @@
+{
+  "dest": {
+    "agents": ".claude/agents",
+    "skills": ".claude/skills",
+    "hooks": ".claude/hooks",
+    "settings_fragments": "config/local/fragments"
+  },
+  "surfaces": {
+    "user-settings": "../.claude/settings.json",
+    "project-settings": ".claude/settings.json",
+    "local-settings": ".claude/settings.local.json"
+  },
+  "backup_root": "~/harness-backups",
+  "probe": {
+    "mem": "cat /proc/meminfo",
+    "cpu": "nproc",
+    "disk": "df -m .",
+    "note": "/proc/meminfo 는 WSL VM 할당량이지 호스트 총량이 아니다 — 상한 산식의 입력으로는 정확하다",
+    "notify": "powershell.exe -NoProfile -Command"
+  },
+  "hook_invoke": "python3 {script}",
+  "path_style": "posix",
+  "platform": "windows-wsl"
+}

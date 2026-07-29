@@ -1,0 +1,16 @@
+{
+  "declaration": {
+    "asset_id": "hook.response-head-gate",
+    "asset_kind": "hook",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "hook_event": "Stop",
+    "enforcement": "blocking",
+    "timeout_s": 20,
+    "description": "응답 머리 표기 3요소·시각 드리프트·상찬 어휘 차단 + 존댓말 관측(X8·F§7.9)"
+  }
+}

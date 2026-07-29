@@ -1,0 +1,17 @@
+{
+  "declaration": {
+    "asset_id": "hook.turn-clock",
+    "asset_kind": "hook",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "hook_event": "UserPromptSubmit",
+    "enforcement": "observing",
+    "timeout_s": 15,
+    "description": "발화 수신 시각 실측 주입 + prompt.submit 이벤트(원문 미수록, 길이·digest만)",
+    "graduation": "관측형 아님 — 주입 전용."
+  }
+}

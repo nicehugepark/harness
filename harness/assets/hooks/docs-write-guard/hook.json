@@ -1,0 +1,17 @@
+{
+  "declaration": {
+    "asset_id": "hook.docs-write-guard",
+    "asset_kind": "hook",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "hook_event": "PreToolUse",
+    "enforcement": "blocking",
+    "timeout_s": 10,
+    "description": "docs/ 하위 직접 쓰기 차단 — 생성·착지 도구로 유도(fail-closed)",
+    "matcher": "Write|Edit|NotebookEdit"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "formula_version": "0.1.0",
+  "_status": "전건 잠정값이다. 리터럴은 이 파일에만 있고 코드에 박지 않는다(S§8).",
+  "per_session_mem_budget_mb": {
+    "value": 700,
+    "status": "잠정(보수값)",
+    "correction": "IV2 검증 프로브 세션의 실측 RSS × 안전계수로 교체하고 measured_at 을 동반 기입한다(E§9-M11)"
+  },
+  "mem_reserve_floor_mb": {
+    "value": 1024,
+    "status": "잠정",
+    "correction": "유휴 상태 실측 mem_total − mem_available 에 여유율 가산"
+  },
+  "cpu_factor": {
+    "value": 0.5,
+    "status": "잠정",
+    "correction": "운용 실측(세션 CPU 점유) 후 보정 — 자기 개선 루프 대상"
+  },
+  "hard_ceiling": {
+    "value": 8,
+    "status": "잠정",
+    "correction": "플랫폼·계정 한도 실측 후 보정"
+  }
+}

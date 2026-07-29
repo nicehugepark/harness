@@ -1,0 +1,20 @@
+{
+  "declaration": {
+    "asset_id": "settings.session-defaults",
+    "asset_kind": "settings-fragment",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "target_surface": "project-settings",
+    "merge_strategy": "set-if-absent",
+    "keys": {
+      "remoteControlAtStartup": true,
+      "agentPushNotifEnabled": true,
+      "inputNeededNotifEnabled": true
+    },
+    "rationale": "S§2-16 세션 기본값 — 원격 제어 자동 활성화·통지 채널. 후보 표면의 실효는 E§9-M6 실측 대상"
+  }
+}

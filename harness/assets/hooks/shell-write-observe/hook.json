@@ -1,0 +1,18 @@
+{
+  "declaration": {
+    "asset_id": "hook.shell-write-observe",
+    "asset_kind": "hook",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "hook_event": "PreToolUse",
+    "enforcement": "observing",
+    "timeout_s": 10,
+    "description": "셸 리다이렉션 경유 docs/ 쓰기 관측 — 문자열 판정은 원리적으로 불완전하므로 차단하지 않는다",
+    "matcher": "Bash",
+    "graduation": "누적 관측 30건 이상에서 오탐률 10% 미만이면 차단 승격, 50% 초과면 규칙 삭제"
+  }
+}

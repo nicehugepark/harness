@@ -1,0 +1,22 @@
+{
+  "dest": {
+    "agents": ".claude/agents",
+    "skills": ".claude/skills",
+    "hooks": ".claude/hooks",
+    "settings_fragments": "config/local/fragments"
+  },
+  "surfaces": {
+    "user-settings": "../.claude/settings.json",
+    "project-settings": ".claude/settings.json",
+    "local-settings": ".claude/settings.local.json"
+  },
+  "backup_root": "~/harness-backups",
+  "probe": {
+    "mem": "cat /proc/meminfo",
+    "cpu": "nproc",
+    "disk": "df -m ."
+  },
+  "hook_invoke": "python3 {script}",
+  "path_style": "posix",
+  "platform": "linux"
+}

@@ -1,0 +1,17 @@
+{
+  "declaration": {
+    "asset_id": "hook.session-identity",
+    "asset_kind": "hook",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "hook_event": "SessionStart",
+    "enforcement": "observing",
+    "timeout_s": 15,
+    "description": "세션 신원 발급 확인 + 턴 시작 실측 시각 주입 + session.start 이벤트 append",
+    "graduation": "관측형 아님 — 기록·주입 전용이라 차단 축이 없다. 승격 대상 밖."
+  }
+}

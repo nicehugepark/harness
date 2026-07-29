@@ -1,0 +1,23 @@
+{
+  "declaration": {
+    "asset_id": "settings.concurrency-cap",
+    "asset_kind": "settings-fragment",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "target_surface": "project-settings",
+    "merge_strategy": "overwrite-managed",
+    "keys": {
+      "env": {
+        "HARNESS_CONCURRENCY_CAP": {
+          "from": "machine-config:limits.concurrency_cap"
+        },
+        "HARNESS_ROOT": "${PWD}"
+      }
+    },
+    "rationale": "E§4.4 — 상한 값의 원천은 머신 설정 파일이고 표면에는 참조로 기입한다. 무상한 병렬 금지"
+  }
+}
