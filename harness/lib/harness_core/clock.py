@@ -49,7 +49,14 @@ def parse_iso(value: str) -> _dt.datetime:
     """ISO 8601 파싱. 오프셋 없는 값은 거부한다 — 시각의 절대성이 계약이다."""
     if not value:
         raise ValueError("빈 시각 문자열")
-    v = value.strip().replace("Z", "+00:00")
+    # YAML 은 따옴표 없는 시각 리터럴을 datetime 으로 파싱한다. 원장 문서가
+    # 그렇게 적혀 있으면 여기 오는 값이 문자열이 아니고, 그때 스케줄러가 통째로
+    # 죽었다 — 입력 형태 하나로 판정 전체가 멈추는 자리를 남기지 않는다.
+    if isinstance(value, _dt.datetime):
+        if value.tzinfo is None:
+            raise ValueError(f"오프셋 없는 시각은 무효다(S§3.5): {value!r}")
+        return value
+    v = str(value).strip().replace("Z", "+00:00")
     try:
         d = _dt.datetime.fromisoformat(v)
     except ValueError as exc:

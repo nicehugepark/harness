@@ -92,6 +92,9 @@ def kill_switch_on(root: pathlib.Path) -> bool:
     return (root / KILL_FILE_REL).exists()
 
 
+WORKFLOW_REL = "harness/assets/workflows/request.js"
+
+
 def _find_cli(root: pathlib.Path) -> str | None:
     """머신 레코드의 실측값 → PATH 순. 설치기와 같은 규칙을 쓴다."""
     import shutil
@@ -149,15 +152,21 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
     # 단계별 에이전트는 이 세션이 스폰한다. 스텝마다 세션을 새로 여는 방식은
     # 감사 경계를 요청이 아니라 스텝으로 잘라 "이 요청에서 무슨 일이 있었나"를
     # 한 자리에서 답할 수 없게 만든다.
+    # 이 세션이 하는 일은 **워크플로 스크립트 1개 실행**이다.
+    #
+    # 절차서를 주고 세션이 알아서 진행하게 했더니, 설계 산출까지 하고 "백그라운드에서
+    # 계속 진행됩니다"라고 적은 뒤 턴이 끝나 요청이 멈췄다(실사고 2026-07-29T05:05).
+    # 반복·분기·상한을 모델 재량에 두면 그 재량이 어느 턴에 멈추는 자리를 만든다.
+    # 제어흐름은 스크립트가 들고, 모델은 각 칸의 내용만 채운다.
     prompt = (
-        "요청 세션을 시작합니다. `request-pipeline` 스킬의 절차를 따르십시오.\n"
-        f"ledger_path={launch['ledger_path']}\n"
-        f"baseline_ref={launch['baseline_ref']}\n"
-        f"engine={launch['engine']}\n"
-        f"stage={stage}\n"
-        "첫 행동은 ledger_path 전문 읽기입니다. 이 프롬프트에 적히지 않은 완료 "
-        "기준·기준선을 추측하지 마십시오. 판정은 gatecheck.py 의 종료 코드가 "
-        "하며, 여러분이 통과를 선언하는 것은 판정이 아닙니다."
+        "Workflow 도구로 아래 스크립트를 실행하십시오. 그것이 이 세션이 하는 "
+        "일의 전부입니다 — 직접 분석·설계를 시작하지 마십시오.\n"
+        f"scriptPath: {WORKFLOW_REL}\n"
+        "args: " + json.dumps({"ledger_path": launch["ledger_path"],
+                               "baseline_ref": launch["baseline_ref"],
+                               "stage": stage}, ensure_ascii=False) + "\n\n"
+        "워크플로가 끝나면 반환값을 그대로 보고하고 세션을 끝냅니다. 워크플로가 "
+        "실패하면 실패를 그대로 보고하십시오 — 우회 경로를 만들지 마십시오."
     )
     if machine.get("transport") == "ssh":
         return False, ("원격 dispatch 는 원격 실행 루트에 하네스가 설치돼 있어야 "
