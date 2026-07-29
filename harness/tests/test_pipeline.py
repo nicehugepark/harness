@@ -211,3 +211,34 @@ def test_counters_increment_on_their_transitions():
     new, _ = P.apply(r, "building", {"failed_units": ["u1"],
                                      "verdict_refs": ["vr-1"]})
     assert new["rework_count"] == 1
+
+
+# ── 이중 기동 (실사고 2026-07-29T04:33) ─────────────────────────
+def test_dispatch_must_claim_the_ledger_before_spawning():
+    """실사고: dispatch 가 세션만 띄우고 **원장에 상태를 쓰지 않아** 틱마다
+    같은 요청을 다시 기동했다(같은 요청에 세션 3개).
+
+    전이 5 는 `session_ref` 기입을 스케줄러 몫으로 정한다 — 그 기입이 곧
+    lease 이고, lease 없이 띄운 세션은 이중 세션 차단의 전제를 잃는다.
+    claim 은 **띄우기 전에** 한다: 띄우고 나서 claim 하면 그 사이 크래시가
+    고아 세션을 남긴다.
+    """
+    from harness_core import ledger
+    assert ledger.CLAIM_BEFORE_SPAWN is True
+
+
+def test_claim_is_compare_and_set_on_queued():
+    from harness_core import ledger
+    ok, why = ledger.can_claim({"state": "queued", "session_ref": None})
+    assert ok
+    ok, why = ledger.can_claim({"state": "designing", "session_ref": "s1"})
+    assert not ok and "이미" in why
+    ok, why = ledger.can_claim({"state": "queued", "session_ref": "s0"})
+    assert not ok and "lease" in why
+
+
+def test_lease_mismatch_is_fenced():
+    from harness_core import ledger
+    assert ledger.lease_ok({"session_ref": "s1"}, "s1") is True
+    assert ledger.lease_ok({"session_ref": "s1"}, "s2") is False
+    assert ledger.lease_ok({"session_ref": None}, "s2") is False

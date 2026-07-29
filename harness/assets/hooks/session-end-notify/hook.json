@@ -1,0 +1,17 @@
+{
+  "declaration": {
+    "asset_id": "hook.session-end-notify",
+    "asset_kind": "hook",
+    "version": "0.1.0",
+    "platforms": [
+      "all"
+    ],
+    "scope": "project",
+    "managed_mark": "harness-managed-asset/v1",
+    "hook_event": "SessionEnd",
+    "enforcement": "observing",
+    "timeout_s": 20,
+    "graduation": "관측형 아님 — 기록·발신 예약 전용이라 차단 축이 없다",
+    "description": "요청 세션 종료를 기록하고 통지 발신을 예약한다(훅은 네트워크를 하지 않는다)"
+  }
+}

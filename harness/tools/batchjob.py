@@ -54,10 +54,15 @@ def main() -> int:
         print(f"  미추적 흡수: {len(out['untracked_absorbed'])}건")
     c = out["commit"]
     print(f"  배치 커밋  : {'완료 ' + str(len(c['files'])) + '건' if c['committed'] else c['reason']}")
-    print(f"  커밋 실재  : 미보존 {len(out['reality']['missing'])}건")
+    if out["reality"].get("no_repo"):
+        print("  커밋 실재  : **저장소 부재** — 이 실행 루트의 문서는 버전관리 "
+              "밖이다. 무유실은 백업 장치만으로 성립하며 그 사실을 기록에 남긴다")
+    else:
+        print(f"  커밋 실재  : 미보존 {len(out['reality']['missing'])}건")
     print(f"  인덱스     : {out['index']}")
     print(f"  증분 미러  : {out['mirror']['copied']}건")
-    return 1 if out["reality"]["missing"] else 0
+    # 저장소 부재는 이 잡의 실패가 아니다 — 구성 사실이다. 미보존만 실패로 센다.
+    return 1 if out["reality"].get("missing") else 0
 
 
 if __name__ == "__main__":

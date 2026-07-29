@@ -26,8 +26,8 @@ import sys
 ROOT_DEFAULT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT_DEFAULT / "harness" / "lib"))
 
-from harness_core import (clock, envelope, frontmatter, ids, paths,  # noqa: E402
-                          pipeline, policy, scheduler, schema)
+from harness_core import (clock, envelope, frontmatter, ids, ledger,  # noqa: E402
+                          paths, pipeline, policy, scheduler, schema)
 
 KILL_FILE_REL = "config/local/dispatch-kill"
 
@@ -127,6 +127,14 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
 
     session_ref = ids.mint("AU", machine_id=machine["machine_id"],
                            session_id=req["id"])[-8:]
+
+    # **claim 이 먼저다**(ledger.CLAIM_BEFORE_SPAWN). 원장에 상태와 lease 를 쓰지
+    # 않고 세션만 띄우면 다음 틱이 같은 요청을 다시 적격으로 보고 또 띄운다 —
+    # 실사고 2026-07-29T04:33 에서 같은 요청에 세션 3개가 떴다.
+    claimed, detail = ledger.claim(root, req["path"], session_ref,
+                                   machine=machine["machine_id"])
+    if not claimed:
+        return False, f"claim 실패 — 기동하지 않는다: {detail}"
     env = {
         **os.environ,
         "HARNESS_ROOT": str(root),
@@ -168,6 +176,8 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
                                          f"session-{session_ref}.log", "w"),
                              stderr=subprocess.STDOUT, start_new_session=True)
     except OSError as exc:
+        # 기동 실패 시 claim 을 되돌린다 — 점유만 남으면 그 요청이 영영 멈춘다
+        ledger.release(root, req["path"], session_ref, to_state="queued")
         return False, str(exc)
     return True, f"pid={p.pid} session_ref={session_ref}"
 

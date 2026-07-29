@@ -43,12 +43,21 @@ def batch_commit(root, message: str | None = None) -> dict:
             "reason": r.stderr.strip()[:200] if r.returncode else ""}
 
 
+def has_repo(root) -> bool:
+    return (pathlib.Path(root) / ".git").exists()
+
+
 def verify_commit_reality(root) -> dict:
     """"썼다"는 "보존됐다"가 아니다 — 커밋 실재를 **재조회**로 확인한다.
 
     반환값을 보존의 증거로 읽는 것이 실사고의 형태였다.
     """
     root = pathlib.Path(root)
+    if not has_repo(root):
+        # **저장소 부재는 '미보존'과 다른 사실이다.** 둘을 같은 칸에 세면
+        # "문서가 유실되고 있다"와 "여기엔 저장소가 없다"가 구별되지 않고,
+        # 후자는 설치 구성의 문제이지 배치 잡의 검출 대상이 아니다.
+        return {"head": None, "missing": [], "no_repo": True}
     head = _git(root, "rev-parse", "HEAD")
     if head.returncode != 0:
         return {"head": None, "missing": ["HEAD 없음"]}
@@ -137,6 +146,53 @@ def mirror_incremental(root, backup_root) -> dict:
     return {"copied": copied, "root": str(backup_root / "mirror")}
 
 
+def drain_notify_queue(root, *, sender=None) -> dict:
+    """훅이 예약한 발신 대기를 **배치가** 소비한다.
+
+    훅은 네트워크를 하지 않으므로(R33) 발송 시점이 훅과 분리된다. 대신 대기
+    레코드를 남겨 '끝났는데 아무도 모르는' 구간을 관측 가능하게 만든다 —
+    탐지-무소비 루프를 만들지 않으려면 소비자가 코드에 있어야 한다.
+    """
+    from . import notify as _notify
+    root = pathlib.Path(root)
+    q = root / "config" / "local" / "notify-queue.jsonl"
+    if not q.exists():
+        return {"pending": 0, "sent": 0}
+    lines = [l for l in q.read_text(encoding="utf-8").splitlines() if l.strip()]
+    pending, out = [], []
+    for l in lines:
+        try:
+            rec = json.loads(l)
+        except json.JSONDecodeError:
+            continue
+        if rec.get("state") == "pending":
+            pending.append(rec)
+        out.append(rec)
+    sent = 0
+    pol = policy.load(root)
+    for rec in pending:
+        adj = {"id": f"notify-{rec['req']}", "question":
+               f"요청 세션이 종료됐습니다: {rec['req']}",
+               "options": [{"oid": "review", "label": "결과 확인"}],
+               "path": f"docs/requests/…/{rec['req']}.md"}
+        chans = {}
+        cmd = pol.get("terminal_notify_command")
+        if cmd:
+            chans["terminal"] = lambda m, c=cmd: _notify.terminal_channel(m, c)
+        if sender:
+            chans["mobile"] = sender
+        res = _notify.notify(adj, level=0, channels=chans,
+                             append=lambda r: None)
+        rec["state"] = "sent"
+        rec["delivered"] = res["delivered"]
+        sent += 1
+    tmp = q.with_suffix(".tmp")
+    tmp.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in out),
+                   encoding="utf-8")
+    os.replace(tmp, q)
+    return {"pending": len(pending), "sent": sent}
+
+
 def run_all(root) -> dict:
     """A§5.4-⑤ 배치 잡 전체. 멱등이며 어느 단계가 죽어도 다음 주기가 이어받는다."""
     root = pathlib.Path(root)
@@ -153,4 +209,5 @@ def run_all(root) -> dict:
     out["index"] = compact_index(idx)
     out["mirror"] = mirror_incremental(root, pol.get("backup_root",
                                                      "~/harness-backups"))
+    out["notify"] = drain_notify_queue(root)
     return out

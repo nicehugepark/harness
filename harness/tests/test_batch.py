@@ -179,3 +179,15 @@ def test_escalation_marks_request_blocked_on_human_at_level_two():
 def test_backoff_ladder_is_monotonic():
     ladder = [N.backoff_minutes(l) for l in range(1, 6)]
     assert ladder == sorted(ladder) and ladder[0] == 30
+
+
+def test_missing_repository_is_not_reported_as_lost_documents():
+    """저장소 부재와 미보존은 **다른 사실**이다. 같은 칸에 세면 '문서가 유실되고
+    있다'와 '여기엔 저장소가 없다'가 구별되지 않는다 — 후자는 설치 구성의
+    문제이지 배치 잡의 검출 대상이 아니다(실측: 원격에 저장소가 없어 매 5분
+    유닛이 실패로 표시됐다)."""
+    d = pathlib.Path(tempfile.mkdtemp())
+    (d / "docs/design/public/2026/07").mkdir(parents=True)
+    (d / "docs/design/public/2026/07/DS-x.md").write_text("x", encoding="utf-8")
+    out = B.verify_commit_reality(d)
+    assert out["no_repo"] is True and out["missing"] == []
