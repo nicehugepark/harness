@@ -19,7 +19,9 @@ v=json.loads(pathlib.Path(sys.argv[1]).read_text())
 print('RUSER=%s; RHOST=%s; RPORT=%s' % (v["user"], v["host"], v["port"]))
 PY
 )"
-RROOT='$HOME/harness'
+# 원격 실행 루트 — 로컬과 같은 이름을 쓴다. 선행 판의 ~/.harness·
+# ~/projects 와 경로가 겹치지 않아 섞일 자리가 구조적으로 없다.
+RROOT='$HOME/workspace'
 rsh() { ssh -o BatchMode=yes -o ConnectTimeout=10 -p "$RPORT" "$RUSER@$RHOST" "$@"; }
 
 case "$1" in
