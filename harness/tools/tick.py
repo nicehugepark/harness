@@ -159,12 +159,15 @@ def dispatch_session(root: pathlib.Path, req: dict, machine: dict,
     # 반복·분기·상한을 모델 재량에 두면 그 재량이 어느 턴에 멈추는 자리를 만든다.
     # 제어흐름은 스크립트가 들고, 모델은 각 칸의 내용만 채운다.
     prompt = (
-        "Workflow 도구로 아래 스크립트를 실행하십시오. 그것이 이 세션이 하는 "
-        "일의 전부입니다 — 직접 분석·설계를 시작하지 마십시오.\n"
-        f"scriptPath: {WORKFLOW_REL}\n"
-        "args: " + json.dumps({"ledger_path": launch["ledger_path"],
-                               "baseline_ref": launch["baseline_ref"],
-                               "stage": stage}, ensure_ascii=False) + "\n\n"
+        "Workflow 도구를 **한 번** 호출하십시오. 그것이 이 세션이 하는 일의 "
+        "전부입니다 — 직접 분석·설계를 시작하지 마십시오.\n\n"
+        "호출 파라미터(도구 인자로 넘깁니다. 프롬프트 본문에 적는 것이 아니라 "
+        "scriptPath 와 args 를 Workflow 도구의 입력 필드에 그대로 넣으십시오. "
+        "args 는 문자열이 아니라 JSON 객체입니다):\n"
+        f"  scriptPath = {WORKFLOW_REL!r}\n"
+        "  args = " + json.dumps({"ledger_path": launch["ledger_path"],
+                                  "baseline_ref": launch["baseline_ref"],
+                                  "stage": stage}, ensure_ascii=False) + "\n\n"
         "워크플로가 끝나면 반환값을 그대로 보고하고 세션을 끝냅니다. 워크플로가 "
         "실패하면 실패를 그대로 보고하십시오 — 우회 경로를 만들지 마십시오."
     )

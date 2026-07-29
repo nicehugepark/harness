@@ -134,26 +134,55 @@ async function design() {
 }
 
 // ── 구현 → 검증 → 머지 ────────────────────────────────────────────
+// 화면 유닛의 구속(요청 §6.1·§6.2). "기대한다"가 아니라 요건이다 — 미사용 산출은
+// 수용하지 않고, 준수는 호출이 아니라 **산출 증거**로 측정된다.
+const UI_RULE =
+  '이 유닛은 화면 산출입니다. `frontend-design` 스킬을 **사용해야 합니다** — ' +
+  '미사용 산출은 수용하지 않습니다.\n' +
+  '산출 문서에 `design_evidence` 를 채웁니다: layout_rationale · ' +
+  'typography_rationale · color_rationale 각각에 왜 그 선택인지, ' +
+  'render_evidence_ref 에 실렌더 증거 경로, deviation_disclosure 에 이탈 고지.\n' +
+  '증거 바이너리는 문서 트리에 두지 않고 파생물 디렉토리에 두며 문서에는 경로만 적습니다.'
+
 async function build(ds) {
   phase('구현')
   const units = await agent(
-    ctx('lead(타치코마)') + `설계 ${ds.doc_path} 의 작업 유닛 목록만 뽑으십시오.`,
+    ctx('lead(타치코마)') + `설계 ${ds.doc_path} 의 작업 유닛 목록을 뽑으십시오. ` +
+    `유닛마다 kind 를 판정합니다 — 화면·시각 산출이면 "ui", 코드면 "code", 문서면 "doc".`,
     { label: 'units', phase: '구현',
       schema: { type: 'object', additionalProperties: false, required: ['units'],
-        properties: { units: { type: 'array', items: { type: 'string' } } } } })
+        properties: { units: { type: 'array', items: {
+          type: 'object', additionalProperties: false,
+          required: ['name', 'kind'],
+          properties: { name: { type: 'string' },
+                        kind: { type: 'string', enum: ['ui', 'code', 'doc'] } } } } } } })
 
   const list = (units && units.units || []).slice(0, 12)
   if (!list.length) throw new Error('작업 유닛 0건 — 설계가 분해를 내지 않았다')
+  log(`유닛 ${list.length}건 · 화면 ${list.filter(u => u.kind === 'ui').length}건`)
+
+  // 화면 유닛은 designer 가 시각 방향을 먼저 내고 frontend-developer 가 구현한다.
+  // 두 역할을 건너뛰고 일반 개발자가 화면을 만들면 §6.1 요건이 성립하지 않는다.
+  const uiUnits = list.filter(u => u.kind === 'ui')
+  if (uiUnits.length) {
+    phase('구현')
+    await parallel(uiUnits.map((u, i) => () =>
+      agent(ctx('designer(이시카와)') + `유닛: ${u.name}\n` +
+        '화면 요건과 시각 방향을 산출하십시오.\n' + UI_RULE,
+        { label: `designer:${i + 1}`, phase: '구현', schema: DOC })))
+  }
 
   // 유닛마다 구현→검증을 독립으로 흘린다. 한 유닛이 느리다고 나머지가 기다리지 않는다.
   const done = await pipeline(list,
-    (u, _o, i) => agent(ctx('developer') +
-      `유닛: ${u}\n실패하는 시험을 먼저 쓰고 그 실패를 관측한 뒤 구현하십시오. ` +
+    (u, _o, i) => agent(
+      ctx(u.kind === 'ui' ? 'frontend-developer(보마)' : 'developer') +
+      `유닛: ${u.name}\n실패하는 시험을 먼저 쓰고 그 실패를 관측한 뒤 구현하십시오. ` +
       `증거(실패 시험 참조·실패 출력·구현 참조·통과 출력)를 BuildReport 로 착지시킵니다. ` +
-      `산출이 문서면 doc 증거 계약을 씁니다.`,
+      `산출이 문서면 doc 증거 계약을 씁니다.\n` +
+      (u.kind === 'ui' ? UI_RULE : ''),
       { label: `build:${i + 1}`, phase: '구현', isolation: 'worktree', schema: DOC }),
     (rep, u, i) => agent(ctx('qa(토구사)') +
-      `유닛: ${u}\n산출: ${rep && rep.doc_path}\n` +
+      `유닛: ${u.name}\n산출: ${rep && rep.doc_path}\n` +
       `설계의 검증 기준으로 판정하십시오. 판정은 통과·불통과·**미판정** 3분류이고 ` +
       `미판정을 통과에 합산하지 않습니다. ${TOOLS}/gatecheck.py verify 의 종료 코드를 ` +
       `그대로 보고하십시오.`,
