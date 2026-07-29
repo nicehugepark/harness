@@ -6,7 +6,7 @@ title: 대시보드 설계 프롬프트 — 하네스 운영 대시보드 구축
 visibility: public
 state: received
 created: 2026-07-29 03:06:16+09:00
-updated: '2026-07-29T14:58:52+09:00'
+updated: '2026-07-29T15:03:18+09:00'
 machine: rehearsal-m1
 session: rehearsal-s1
 author: document specialist
@@ -31,8 +31,9 @@ restart_count: 0
 merge_retry_count: 0
 blocked_on: null
 derived_from: null
-session_ref: null
+session_ref: ef7d5ab9
 base_observed: null
+machine_assigned: 18f97fd8ca3a
 ---
 
 ## 요약

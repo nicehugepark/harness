@@ -2,28 +2,30 @@
 schema: 1
 id: RQ-20260728T170616Z-d0bc4127
 type: RQ
-title: "하네스 설계 프롬프트·설계 문서의 파이프라인 재생성 — 새 문서 규격 적용"
+title: 하네스 설계 프롬프트·설계 문서의 파이프라인 재생성 — 새 문서 규격 적용
 visibility: public
-status: received        # 공통 필드. RQ의 논리 상태 enum은 문서 체계 축 §6.2에 따라 아래 state와 동일값 — 이중 표기는 스키마 축 관측 항목(본문 '관측' 절)
-state: received         # 문서 체계 축 §4.2 RQ 필드 — 전이는 파이프라인 축 전이표의 행으로만
-created: 2026-07-29T02:06:16+09:00
-updated: 2026-07-29T02:06:16+09:00
-machine: m01-wsl        # 리허설 자리표시 머신 코드 — 머신 레지스트리(설치 축)는 미가동
-session: rehearsal-20260729-a   # 리허설 자리표시 세션 코드 — 실 세션 신원은 설치 후 세션 시작 시 자동 주입 대상
+state: received
+created: 2026-07-29 02:06:16+09:00
+updated: '2026-07-29T15:03:18+09:00'
+machine: m01-wsl
+session: rehearsal-20260729-a
 author: document specialist
 requester: 의사결정권자
-what: "기 산출된 하네스 설계 프롬프트와 설계 문서를 분석·설계·문서작성·검증 파이프라인으로 재생성해 새 문서 규격에 착지시킨다"
-why: "내용은 적대 리뷰를 통과했으나 형태가 항해 불가능하다 — 단일 거대 파일·개요와 상세 미분리·절 번호 장별 재시작이 열람과 참조를 막는다. 분량 축소가 아니라 구조화로 해소한다"
+what: 기 산출된 하네스 설계 프롬프트와 설계 문서를 분석·설계·문서작성·검증 파이프라인으로 재생성해 새 문서 규격에 착지시킨다
+why: 내용은 적대 리뷰를 통과했으나 형태가 항해 불가능하다 — 단일 거대 파일·개요와 상세 미분리·절 번호 장별 재시작이 열람과 참조를 막는다. 분량 축소가 아니라 구조화로 해소한다
 tags:
-  - stage/intake        # 자동 축 — state=received에서 파생
-  - origin/human        # 자동 축 — requester 신원(사람)에서 파생
-  - kind/improvement
-  - domain/harness-self
-  - domain/document-system
-priority: 80            # 잠정 — 근거는 본문 '스케줄링 입력' 절. pm 분석에서 확정
-weight: null            # pm 역할 기입 필드 — analyzed 전이 시 확정
-depends_on: []          # 착지 시점 등재된 선행 요청 0건. 미등재 선행 요건은 본문 '범위 분할' 절에 명시
-refs: {}                # analysis·design·dev·verification 슬롯은 해당 전이 시 자동 기입(문서 체계 축 §4.2)
+- stage/intake
+- origin/human
+- kind/improvement
+- domain/harness-self
+- domain/document-system
+refs: {}
+status: received
+priority: 80
+weight: null
+depends_on: []
+session_ref: 1d98fb33
+machine_assigned: 18f97fd8ca3a
 ---
 
 # 하네스 설계 프롬프트·설계 문서의 파이프라인 재생성
