@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T15:47:24+09:00",
+  "at": "2026-07-29T15:52:34+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,90 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "f419eb99e0f5",
-      "ts": "2026-07-29T05:50:34Z",
-      "stream": "agent-events",
-      "event": "batch.run",
-      "plane": "system",
-      "machine": "local",
-      "session": "batch",
-      "data": {
-        "at": "2026-07-29T14:50:29+09:00",
-        "tmp_swept": 0,
-        "untracked_absorbed": [
-          "docs/audit/public/2026/07/AU-20260729T054524Z-e69eab7a-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T054945Z-dbe12917-sched-decisions.jsonl"
-        ],
-        "commit": {
-          "committed": true,
-          "files": [
-            "docs/audit/public/2026/07/AU-20260729T054524Z-e69eab7a-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T054945Z-dbe12917-sched-decisions.jsonl"
-          ],
-          "reason": ""
-        },
-        "index": {
-          "regenerate": false,
-          "records": 3
-        },
-        "mirror": {
-          "copied": 2,
-          "root": "/home/sjpark/harness-backups/mirror"
-        },
-        "notify": {
-          "pending": 0,
-          "sent": 0
-        },
-        "publish": {
-          "pushed": true,
-          "ahead": 1,
-          "reason": ""
-        }
-      },
-      "_stream": "AU-20260729T055034Z-9fccd5e9-agent-events.jsonl"
-    },
-    {
-      "id": "9e87c7c99df8",
-      "ts": "2026-07-29T05:52:05Z",
-      "stream": "agent-events",
-      "event": "batch.run",
-      "plane": "system",
-      "machine": "local",
-      "session": "batch",
-      "data": {
-        "at": "2026-07-29T14:52:00+09:00",
-        "tmp_swept": 0,
-        "untracked_absorbed": [
-          "docs/audit/public/2026/07/AU-20260729T055034Z-9fccd5e9-agent-events.jsonl"
-        ],
-        "commit": {
-          "committed": true,
-          "files": [
-            "docs/audit/public/2026/07/AU-20260729T055034Z-9fccd5e9-agent-events.jsonl"
-          ],
-          "reason": ""
-        },
-        "index": {
-          "regenerate": false,
-          "records": 3
-        },
-        "mirror": {
-          "copied": 1,
-          "root": "/home/sjpark/harness-backups/mirror"
-        },
-        "notify": {
-          "pending": 0,
-          "sent": 0
-        },
-        "publish": {
-          "pushed": true,
-          "ahead": 1,
-          "reason": ""
-        }
-      },
-      "_stream": "AU-20260729T055205Z-109bdd10-agent-events.jsonl"
-    },
     {
       "id": "cc82f769cda7",
       "ts": "2026-07-29T05:53:23Z",
@@ -2089,6 +2005,76 @@
         }
       },
       "_stream": "AU-20260729T064724Z-be9a528d-agent-events.jsonl"
+    },
+    {
+      "id": "9b37682814bc",
+      "ts": "2026-07-29T06:49:58Z",
+      "stream": "sched-decisions",
+      "event": "sched.tick",
+      "plane": "system",
+      "machine": "m01-wsl",
+      "session": "tick-d9f8bca4aac9",
+      "data": {
+        "ts": "2026-07-29T06:49:58Z",
+        "trigger": "periodic",
+        "kill_switch": false,
+        "capacity": {
+          "18f97fd8ca3a": {
+            "cap": 50,
+            "active": 2
+          }
+        },
+        "inputs": [],
+        "decisions": [],
+        "adjudications_filed": [],
+        "idle_defect": false,
+        "schema_ver": "sched/1",
+        "tick_id": "d9f8bca4aac9"
+      },
+      "_stream": "AU-20260729T064958Z-8098b6f8-sched-decisions.jsonl"
+    },
+    {
+      "id": "1107fd43571c",
+      "ts": "2026-07-29T06:52:34Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T15:52:29+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T064724Z-be9a528d-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T064958Z-8098b6f8-sched-decisions.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T064724Z-be9a528d-agent-events.jsonl",
+            "docs/audit/public/2026/07/AU-20260729T064958Z-8098b6f8-sched-decisions.jsonl"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 7
+        },
+        "mirror": {
+          "copied": 2,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": true,
+          "ahead": 1,
+          "reason": ""
+        }
+      },
+      "_stream": "AU-20260729T065234Z-e1bceeb9-agent-events.jsonl"
     }
   ],
   "sessions": [],
