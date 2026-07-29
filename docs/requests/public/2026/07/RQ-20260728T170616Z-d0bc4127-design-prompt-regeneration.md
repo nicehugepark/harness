@@ -1,12 +1,13 @@
 ---
-schema: 1
+schema: 2
 id: RQ-20260728T170616Z-d0bc4127
 type: RQ
 title: 하네스 설계 프롬프트·설계 문서의 파이프라인 재생성 — 새 문서 규격 적용
 visibility: public
-state: received
+state: queued
+root: d2a15684b7c4
 created: 2026-07-29 02:06:16+09:00
-updated: '2026-07-29T15:03:18+09:00'
+updated: '2026-07-29T15:24:30+09:00'
 machine: m01-wsl
 session: rehearsal-20260729-a
 author: document specialist
@@ -19,13 +20,20 @@ tags:
 - kind/improvement
 - domain/harness-self
 - domain/document-system
-refs: {}
-status: received
-priority: 80
-weight: null
+output_kind: document
+refs:
+  analysis: DS-20260729T062300Z-18a71e0c
+priority: 2
+weight: heavy
 depends_on: []
-session_ref: 1d98fb33
+session_ref: null
 machine_assigned: 18f97fd8ca3a
+importance: 3
+rework_count: 0
+escalation_count: 0
+design_review_count: 0
+merge_retry_count: 0
+criteria_version: 0
 ---
 
 # 하네스 설계 프롬프트·설계 문서의 파이프라인 재생성
