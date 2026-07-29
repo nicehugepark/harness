@@ -122,7 +122,9 @@ def release(root, rel_path: str, session_ref: str, *, to_state: str) -> tuple[bo
     key = "status" if int(meta.get("schema", 2)) <= 1 else "state"
     meta[key] = to_state
     meta["updated"] = clock.iso_local()
-    if to_state in ("done", "failed", "void"):
+    if to_state in ("done", "failed", "void", "queued", "received"):
+        # queued·received 의 정의가 "아직 아무 세션도 잡지 않은 것"이다.
+        # lease 를 남기면 can_claim 이 점유 중으로 보고 영영 집지 않는다.
         meta["session_ref"] = None
     tmp = p.with_suffix(p.suffix + ".tmp")
     with open(tmp, "w", encoding="utf-8") as fh:
