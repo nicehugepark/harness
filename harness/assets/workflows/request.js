@@ -24,7 +24,9 @@ export const meta = {
 // "누구를 언제 몇 번 부르는가"만 정한다.
 // ─────────────────────────────────────────────────────────────────
 
-const A = args || {}
+// 호출 쪽이 args 를 JSON 문자열로 넘기는 일이 실제로 있었다(실사고 2026-07-29T07:03,
+// 에이전트 0건으로 즉시 실패). 입력 형태 하나로 전체가 멈추는 자리를 남기지 않는다.
+const A = (typeof args === 'string' ? JSON.parse(args) : (args || {}))
 const LEDGER = A.ledger_path
 const BASELINE = A.baseline_ref || 'main'
 const START = A.stage || 'analysis'
