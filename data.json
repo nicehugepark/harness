@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T16:12:52+09:00",
+  "at": "2026-07-29T16:17:55+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,94 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "9f352c2ce9ce",
-      "ts": "2026-07-29T06:37:04Z",
-      "stream": "agent-events",
-      "event": "batch.run",
-      "plane": "system",
-      "machine": "local",
-      "session": "batch",
-      "data": {
-        "at": "2026-07-29T15:36:59+09:00",
-        "tmp_swept": 0,
-        "untracked_absorbed": [
-          "docs/audit/public/2026/07/AU-20260729T063154Z-4d967c87-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063159Z-6299d035-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063159Z-d8681a05-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T063457Z-3f2ffd03-sched-decisions.jsonl"
-        ],
-        "commit": {
-          "committed": true,
-          "files": [
-            "docs/audit/public/2026/07/AU-20260729T063154Z-4d967c87-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063159Z-6299d035-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063159Z-d8681a05-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T063457Z-3f2ffd03-sched-decisions.jsonl"
-          ],
-          "reason": ""
-        },
-        "index": {
-          "regenerate": false,
-          "records": 7
-        },
-        "mirror": {
-          "copied": 3,
-          "root": "/home/sjpark/harness-backups/mirror"
-        },
-        "notify": {
-          "pending": 1,
-          "sent": 1
-        },
-        "publish": {
-          "pushed": true,
-          "ahead": 1,
-          "reason": ""
-        }
-      },
-      "_stream": "AU-20260729T063704Z-15ecb97c-agent-events.jsonl"
-    },
-    {
-      "id": "9481725ab5e4",
-      "ts": "2026-07-29T06:42:14Z",
-      "stream": "agent-events",
-      "event": "batch.run",
-      "plane": "system",
-      "machine": "local",
-      "session": "batch",
-      "data": {
-        "at": "2026-07-29T15:42:09+09:00",
-        "tmp_swept": 0,
-        "untracked_absorbed": [
-          "docs/audit/public/2026/07/AU-20260729T063704Z-15ecb97c-agent-events.jsonl"
-        ],
-        "commit": {
-          "committed": true,
-          "files": [
-            "docs/audit/public/2026/07/AU-20260729T063704Z-15ecb97c-agent-events.jsonl"
-          ],
-          "reason": ""
-        },
-        "index": {
-          "regenerate": false,
-          "records": 7
-        },
-        "mirror": {
-          "copied": 2,
-          "root": "/home/sjpark/harness-backups/mirror"
-        },
-        "notify": {
-          "pending": 0,
-          "sent": 0
-        },
-        "publish": {
-          "pushed": true,
-          "ahead": 1,
-          "reason": ""
-        }
-      },
-      "_stream": "AU-20260729T064214Z-ac999d5b-agent-events.jsonl"
-    },
     {
       "id": "67a60ec01a6f",
       "ts": "2026-07-29T06:47:24Z",
@@ -2182,22 +2094,72 @@
         ]
       },
       "_stream": "AU-20260729T071252Z-bd7f0ecc-agent-events.jsonl"
+    },
+    {
+      "id": "049e3a96c870",
+      "ts": "2026-07-29T07:17:55Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "oversize": true,
+        "size": 5560,
+        "digest": "9b13e861bc59ca5f",
+        "spill_ref": "docs/audit/public/2026/07/spill/049e3a96c870.json"
+      },
+      "_stream": "AU-20260729T071755Z-b74e06db-agent-events.jsonl"
+    },
+    {
+      "id": "d80d680142b4",
+      "ts": "2026-07-29T07:17:55Z",
+      "stream": "agent-events",
+      "event": "batch.defect",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "missing": [
+          "docs/audit/public/2026/07/AU-20260729T065551Z-8c3ebe53-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065556Z-0c2c4524-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065556Z-6931ccc8-sched-decisions.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065556Z-6d14cdec-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065557Z-4c13cbda-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065557Z-f22f910a-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065606Z-8205cf2c-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065608Z-d111cdff-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065610Z-25daf4c2-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065610Z-9c490f1d-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065614Z-25679eec-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065614Z-638ef00a-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065622Z-1907c264-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065622Z-bce945c0-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065627Z-097f81e8-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065627Z-5cc89b47-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065736Z-a42713ad-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065736Z-aed6d4f5-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065744Z-8f1f2dd0-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065811Z-5de0c95a-agent-events.jsonl"
+        ]
+      },
+      "_stream": "AU-20260729T071755Z-b74e06db-agent-events.jsonl"
     }
   ],
   "sessions": [
     {
       "pid": "943286",
-      "elapsed": "00:52",
+      "elapsed": "05:56",
       "req": "RQ-20260728T170616Z-d0bc4127-design-prompt-regeneration.md\","
     },
     {
       "pid": "943289",
-      "elapsed": "00:52",
+      "elapsed": "05:56",
       "req": "RQ-20260728T180616Z-ef94bc02-dashboard-design-prompt.md\","
     }
   ],
   "defects": [
-    "미보존 문서 61건",
+    "미보존 문서 63건",
     "미추적 2건"
   ],
   "notify_pending": 0,
