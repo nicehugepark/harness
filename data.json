@@ -1,14 +1,14 @@
 {
-  "at": "2026-07-29T15:52:34+09:00",
+  "at": "2026-07-29T15:55:51+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
       "title": "하네스 설계 프롬프트·설계 문서의 파이프라인 재생성 — 새 문서 규격 적용",
-      "state": "designing",
+      "state": "queued",
       "priority": 2,
       "weight": "heavy",
       "created": "2026-07-29 02:06:16+09:00",
-      "updated": "2026-07-29T15:29:24+09:00",
+      "updated": "2026-07-29T15:55:36+09:00",
       "session_ref": "5a362518",
       "machine": "18f97fd8ca3a",
       "depends_on": [],
@@ -21,11 +21,11 @@
     {
       "id": "RQ-20260728T180616Z-ef94bc02",
       "title": "대시보드 설계 프롬프트 — 하네스 운영 대시보드 구축 요청 (판 0.4 — 채번 기준은 §10.3)",
-      "state": "designing",
+      "state": "queued",
       "priority": 2,
       "weight": "heavy",
       "created": "2026-07-29 03:06:16+09:00",
-      "updated": "2026-07-29T15:29:25+09:00",
+      "updated": "2026-07-29T15:55:36+09:00",
       "session_ref": "0764965f",
       "machine": "18f97fd8ca3a",
       "depends_on": [],
@@ -54,120 +54,11 @@
     }
   ],
   "by_state_counts": {
-    "designing": 2,
+    "queued": 2,
     "hold": 1
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "cc82f769cda7",
-      "ts": "2026-07-29T05:53:23Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "interactive",
-      "machine": "m-ea155febfb",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "head_ok": true,
-        "head_detail": "",
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 22,
-          "polite": 14,
-          "ratio": 0.636
-        }
-      },
-      "_stream": "AU-20260729T055323Z-3eac4faa-agent-events.jsonl"
-    },
-    {
-      "id": "ea559e184681",
-      "ts": "2026-07-29T05:53:40Z",
-      "stream": "agent-events",
-      "event": "prompt.submit",
-      "plane": "interactive",
-      "machine": "m-ea155febfb",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "len": 34,
-        "digest": "6f95fd05d1b49570"
-      },
-      "_stream": "AU-20260729T055340Z-d78383f0-agent-events.jsonl"
-    },
-    {
-      "id": "388861295e2a",
-      "ts": "2026-07-29T05:54:51Z",
-      "stream": "agent-events",
-      "event": "doc.landed",
-      "plane": "workflow",
-      "machine": "18f97fd8ca3a",
-      "session": "9c790b18",
-      "data": {
-        "id": "DS-20260729T055451Z-a533c59c",
-        "path": "docs/design/public/2026/07/DS-20260729T055451Z-a533c59c.md"
-      },
-      "req": "RQ-20260729T040046Z-0f28a578",
-      "role": "architect",
-      "agent": "architect",
-      "_stream": "AU-20260729T055451Z-3f6852a7-agent-events.jsonl"
-    },
-    {
-      "id": "997ce68da7e9",
-      "ts": "2026-07-29T05:55:44Z",
-      "stream": "agent-events",
-      "event": "batch.run",
-      "plane": "system",
-      "machine": "local",
-      "session": "batch",
-      "data": {
-        "at": "2026-07-29T14:55:39+09:00",
-        "tmp_swept": 0,
-        "untracked_absorbed": [
-          "docs/audit/public/2026/07/AU-20260729T055205Z-109bdd10-agent-events.jsonl",
-          "docs/audit/public/2026/07/AU-20260729T055451Z-3f6852a7-agent-events.jsonl"
-        ],
-        "commit": {
-          "committed": true,
-          "files": [
-            "docs/audit/public/2026/07/AU-20260729T055205Z-109bdd10-agent-events.jsonl",
-            "docs/audit/public/2026/07/AU-20260729T055451Z-3f6852a7-agent-events.jsonl",
-            "docs/design/public/2026/07/DS-20260729T055451Z-a533c59c.md"
-          ],
-          "reason": ""
-        },
-        "index": {
-          "regenerate": false,
-          "records": 4
-        },
-        "mirror": {
-          "copied": 2,
-          "root": "/home/sjpark/harness-backups/mirror"
-        },
-        "notify": {
-          "pending": 0,
-          "sent": 0
-        },
-        "publish": {
-          "pushed": true,
-          "ahead": 1,
-          "reason": ""
-        }
-      },
-      "_stream": "AU-20260729T055544Z-22c42126-agent-events.jsonl"
-    },
-    {
-      "id": "270bd14ac1e9",
-      "ts": "2026-07-29T05:56:41Z",
-      "stream": "agent-events",
-      "event": "gate.block",
-      "plane": "interactive",
-      "machine": "m-ea155febfb",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "tool": "Edit",
-        "rule": "docs-write-guard"
-      },
-      "_stream": "AU-20260729T055641Z-eb5b7f64-agent-events.jsonl"
-    },
     {
       "id": "87c9dfd33459",
       "ts": "2026-07-29T05:58:52Z",
@@ -1851,6 +1742,26 @@
       "_stream": "AU-20260729T063159Z-d8681a05-agent-events.jsonl"
     },
     {
+      "id": "1258c8f1f73e",
+      "ts": "2026-07-29T06:33:42Z",
+      "stream": "agent-events",
+      "event": "agent.turn_end",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "head_ok": true,
+        "head_detail": "",
+        "praise_hit": null,
+        "honorific": {
+          "korean_sentences": 24,
+          "polite": 19,
+          "ratio": 0.792
+        }
+      },
+      "_stream": "AU-20260729T063342Z-c3874f76-agent-events.jsonl"
+    },
+    {
       "id": "f4284ee1952d",
       "ts": "2026-07-29T06:34:57Z",
       "stream": "sched-decisions",
@@ -2034,6 +1945,20 @@
       "_stream": "AU-20260729T064958Z-8098b6f8-sched-decisions.jsonl"
     },
     {
+      "id": "de8cb523881c",
+      "ts": "2026-07-29T06:52:29Z",
+      "stream": "agent-events",
+      "event": "prompt.submit",
+      "plane": "interactive",
+      "machine": "m-ea155febfb",
+      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
+      "data": {
+        "len": 87,
+        "digest": "ee90f44c0b19e093"
+      },
+      "_stream": "AU-20260729T065229Z-16515663-agent-events.jsonl"
+    },
+    {
       "id": "1107fd43571c",
       "ts": "2026-07-29T06:52:34Z",
       "stream": "agent-events",
@@ -2075,6 +2000,179 @@
         }
       },
       "_stream": "AU-20260729T065234Z-e1bceeb9-agent-events.jsonl"
+    },
+    {
+      "id": "88f7ec137207",
+      "ts": "2026-07-29T06:55:07Z",
+      "stream": "sched-decisions",
+      "event": "sched.tick",
+      "plane": "system",
+      "machine": "m01-wsl",
+      "session": "tick-e5e86b280377",
+      "data": {
+        "ts": "2026-07-29T06:55:07Z",
+        "trigger": "periodic",
+        "kill_switch": false,
+        "capacity": {
+          "18f97fd8ca3a": {
+            "cap": 50,
+            "active": 2
+          }
+        },
+        "inputs": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 3,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 2,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          }
+        ],
+        "decisions": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "action": "dispatch",
+            "machine": "18f97fd8ca3a",
+            "reason": "dispatched"
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "action": "dispatch",
+            "machine": "18f97fd8ca3a",
+            "reason": "dispatched"
+          }
+        ],
+        "adjudications_filed": [],
+        "idle_defect": false,
+        "schema_ver": "sched/1",
+        "tick_id": "e5e86b280377"
+      },
+      "_stream": "AU-20260729T065507Z-128c562e-sched-decisions.jsonl"
+    },
+    {
+      "id": "f87d680cef48",
+      "ts": "2026-07-29T06:55:37Z",
+      "stream": "sched-decisions",
+      "event": "sched.tick",
+      "plane": "system",
+      "machine": "m01-wsl",
+      "session": "tick-1eacb5844064",
+      "data": {
+        "ts": "2026-07-29T06:55:37Z",
+        "trigger": "periodic",
+        "kill_switch": false,
+        "capacity": {
+          "18f97fd8ca3a": {
+            "cap": 50,
+            "active": 2
+          }
+        },
+        "inputs": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 3,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "state": "queued",
+            "own": 2,
+            "override": false,
+            "importance": 2,
+            "eff_base": 2,
+            "eff": 3,
+            "deps_unmet": 0,
+            "blocked_on": null
+          }
+        ],
+        "decisions": [
+          {
+            "req_id": "RQ-20260728T170616Z-d0bc4127",
+            "action": "dispatch",
+            "machine": "18f97fd8ca3a",
+            "reason": "dispatched"
+          },
+          {
+            "req_id": "RQ-20260728T180616Z-ef94bc02",
+            "action": "dispatch",
+            "machine": "18f97fd8ca3a",
+            "reason": "dispatched"
+          }
+        ],
+        "adjudications_filed": [],
+        "idle_defect": false,
+        "schema_ver": "sched/1",
+        "tick_id": "1eacb5844064"
+      },
+      "_stream": "AU-20260729T065537Z-b43b529c-sched-decisions.jsonl"
+    },
+    {
+      "id": "bda27dd83062",
+      "ts": "2026-07-29T06:55:51Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T15:55:46+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T065234Z-e1bceeb9-agent-events.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065507Z-128c562e-sched-decisions.jsonl",
+          "docs/audit/public/2026/07/AU-20260729T065537Z-b43b529c-sched-decisions.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T065234Z-e1bceeb9-agent-events.jsonl",
+            "docs/audit/public/2026/07/AU-20260729T065507Z-128c562e-sched-decisions.jsonl",
+            "docs/audit/public/2026/07/AU-20260729T065537Z-b43b529c-sched-decisions.jsonl",
+            "docs/requests/public/2026/07/RQ-20260728T170616Z-d0bc4127-design-prompt-regeneration.md",
+            "docs/requests/public/2026/07/RQ-20260728T180616Z-ef94bc02-dashboard-design-prompt.md"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 7
+        },
+        "mirror": {
+          "copied": 3,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": false,
+          "ahead": 1,
+          "reason": "To github-harness:nicehugepark/harness.git\n ! [rejected]        main -> main (non-fast-forward)\nerror: failed to push some refs to 'github-harness:nicehugepark/harness.git'\nhint: Updates were rejected"
+        }
+      },
+      "_stream": "AU-20260729T065551Z-8c3ebe53-agent-events.jsonl"
     }
   ],
   "sessions": [],
