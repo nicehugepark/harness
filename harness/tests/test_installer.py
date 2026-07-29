@@ -581,3 +581,27 @@ def test_written_machine_record_carries_the_override_not_just_the_printout():
     back = json.loads(mp.read_text("utf-8"))          # 재독 대조
     assert back["limits"]["concurrency_cap"] == 50
     assert back["limits"]["formula_derived_cap"] == 8
+
+
+def test_machine_record_cli_path_wins_over_search():
+    """실측 확정값은 탐색보다 우선한다 — 탐색은 추정이고 레코드는 측정이다.
+
+    값은 머신 레코드(config/, 버전관리 밖)에만 둔다. 코드나 저장소에 절대
+    경로가 박히면 다른 사람의 설치가 깨지고, 그 경로 자체가 노출이 된다(S§8).
+    """
+    lab = _lab()
+    prof = _profile(lab)
+    real = lab / "fake-bin" / "claude"
+    real.parent.mkdir(exist_ok=True)
+    real.write_text("#!/bin/sh\n", encoding="utf-8")
+    real.chmod(0o755)
+    machine = {"cli": {"claude": str(real)}}
+    assert I.find_cli("claude", prof, machine=machine) == str(real)
+
+
+def test_machine_record_cli_path_that_vanished_falls_back_to_search():
+    """레코드의 값이 실재하지 않으면 그것을 사실로 우기지 않는다."""
+    lab = _lab()
+    prof = dict(_profile(lab), bin_paths=[])
+    machine = {"cli": {"claude": str(lab / "gone" / "claude")}}
+    assert I.find_cli("harness-no-such-cli", prof, machine=machine) is None

@@ -212,10 +212,25 @@ def merge_limits(derived: dict, existing: dict | None) -> dict:
     return out
 
 
-def find_cli(name: str, profile: dict) -> str | None:
-    """플랫폼 CLI 탐색. 비대화 셸의 PATH 에 없는 경우가 정상적으로 존재한다
-    (실측: 원격의 claude 는 ~/.local/bin 에 있고 비대화 PATH 에는 없다).
-    찾지 못하면 검증 축이 '검증 불가'가 되고 그것은 통과가 아니다."""
+def find_cli(name: str, profile: dict, machine: dict | None = None) -> str | None:
+    """플랫폼 CLI 탐색. 순서: 머신 레코드의 실측 확정값 → PATH → 프로파일 경로.
+
+    비대화 셸의 PATH 에 없는 경우가 **정상적으로** 존재한다 — `ssh 호스트 '명령'`
+    은 .bashrc·.profile 을 읽지 않으므로 ~/.local/bin 이 PATH 에서 사라진다
+    (실측 2026-07-29: 비대화 PATH 에 없음, 로그인 셸 PATH 에는 있음).
+
+    레코드값을 1순위로 두는 근거: 탐색은 추정이고 레코드는 측정이다. 다만
+    레코드의 값이 실재하지 않으면 그것을 사실로 우기지 않고 탐색으로 내려간다.
+
+    값은 머신 레코드(config/ — 버전관리 밖)에만 둔다. 코드나 저장소에 절대
+    경로가 박히면 다른 사람의 설치가 깨지고 경로 자체가 노출이 된다(S§8).
+    찾지 못하면 검증 축이 '검증 불가'가 되고 그것은 통과가 아니다.
+    """
+    recorded = ((machine or {}).get("cli") or {}).get(name)
+    if recorded:
+        cand = pathlib.Path(os.path.expanduser(recorded))
+        if cand.exists() and os.access(cand, os.X_OK):
+            return str(cand)
     found = shutil.which(name)
     if found:
         return found
@@ -828,7 +843,8 @@ def resolve_ref(value, limits):
 
 
 # ══ 검증 (E§2.6) ════════════════════════════════════════════════
-def verify(root, profile, plan, journal, clean_home: bool) -> dict:
+def verify(root, profile, plan, journal, clean_home: bool,
+           machine: dict | None = None) -> dict:
     res = {"axes": {}, "unverifiable": []}
 
     # A2 — 로스터 기대 집합 ⊆ 등록된 에이전트 집합
@@ -870,7 +886,7 @@ def verify(root, profile, plan, journal, clean_home: bool) -> dict:
     res["axes"]["A6_detail"] = f"{viol}건"
 
     # A1·A4 — 헤드리스 프로브 세션 + SessionStart 센티널 이벤트 착지
-    claude = find_cli("claude", profile)
+    claude = find_cli("claude", profile, machine=machine)
     if not claude:
         res["unverifiable"].append("A1/A4 — claude 실행체 부재")
         res["axes"]["A1_headless"] = None
@@ -968,6 +984,7 @@ def cmd_install(args) -> int:
         "machine_id": machine_id, "display_alias": args.alias or platform.node(),
         "platform": plat, "role": "primary", "transport": "local",
         "work_root": str(root), "probe": probe, "limits": limits,
+        "cli": {},
         "status": "active", "pending": [], "created": clock.iso_local(),
         "updated": clock.iso_local(),
     }
@@ -990,6 +1007,13 @@ def cmd_install(args) -> int:
                         detail="같은 별칭의 중복 편성 레코드를 흡수")
                 break
     limits = merge_limits(limits, prev)
+    # CLI 경로를 **실측해 레코드에 남긴다**. 다음 설치는 탐색이 아니라 이 값을
+    # 먼저 본다 — 같은 것을 매번 다시 추정하지 않기 위해서다.
+    mrec["cli"] = dict((prev or {}).get("cli") or {})
+    found_cli = find_cli("claude", profile, machine=prev)
+    if found_cli:
+        mrec["cli"]["claude"] = found_cli
+        mrec["cli"]["_measured_at"] = clock.iso_local()
     # 병합 결과를 레코드에 **다시 넣는다**. 이름만 재할당하면 mrec 은 병합 전
     # 값을 계속 가리키고, 출력과 파일이 갈린다 — 검증 축 A5 가 "기입 ≠ 적용"이라
     # 적은 실패를 설치기 자신이 내게 된다(실사고 2026-07-29T03:39: 출력 50, 파일 8).
@@ -1039,7 +1063,8 @@ def cmd_install(args) -> int:
         keys = apply_settings(root, profile, plan, j, scope, limits)
 
         j.enter("verified", "verify")
-        vres = verify(root, profile, plan, j, clean_home=args.clean_home)
+        vres = verify(root, profile, plan, j, clean_home=args.clean_home,
+                      machine=mrec)
         if not vres["pass"]:
             raise RuntimeError(f"검증 불통과: {vres['failed']}")
     except Exception as exc:                      # noqa: BLE001
