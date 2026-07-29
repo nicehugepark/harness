@@ -1,5 +1,5 @@
 {
-  "at": "2026-07-29T14:51:34+09:00",
+  "at": "2026-07-29T14:52:05+09:00",
   "requests": [
     {
       "id": "RQ-20260728T170616Z-d0bc4127",
@@ -59,26 +59,6 @@
   },
   "unknown_state": [],
   "events": [
-    {
-      "id": "59a8f343cb7f",
-      "ts": "2026-07-29T04:15:18Z",
-      "stream": "agent-events",
-      "event": "agent.turn_end",
-      "plane": "interactive",
-      "machine": "DESKTOP-7NNI7IS",
-      "session": "2898af6f-f67b-42d4-946d-03228edd2c3a",
-      "data": {
-        "head_ok": true,
-        "head_detail": "",
-        "praise_hit": null,
-        "honorific": {
-          "korean_sentences": 22,
-          "polite": 16,
-          "ratio": 0.727
-        }
-      },
-      "_stream": "AU-20260729T041518Z-51da26d5-agent-events.jsonl"
-    },
     {
       "id": "ac433cd719ec",
       "ts": "2026-07-29T04:21:43Z",
@@ -2141,12 +2121,53 @@
         }
       },
       "_stream": "AU-20260729T055034Z-9fccd5e9-agent-events.jsonl"
+    },
+    {
+      "id": "9e87c7c99df8",
+      "ts": "2026-07-29T05:52:05Z",
+      "stream": "agent-events",
+      "event": "batch.run",
+      "plane": "system",
+      "machine": "local",
+      "session": "batch",
+      "data": {
+        "at": "2026-07-29T14:52:00+09:00",
+        "tmp_swept": 0,
+        "untracked_absorbed": [
+          "docs/audit/public/2026/07/AU-20260729T055034Z-9fccd5e9-agent-events.jsonl"
+        ],
+        "commit": {
+          "committed": true,
+          "files": [
+            "docs/audit/public/2026/07/AU-20260729T055034Z-9fccd5e9-agent-events.jsonl"
+          ],
+          "reason": ""
+        },
+        "index": {
+          "regenerate": false,
+          "records": 3
+        },
+        "mirror": {
+          "copied": 1,
+          "root": "/home/sjpark/harness-backups/mirror"
+        },
+        "notify": {
+          "pending": 0,
+          "sent": 0
+        },
+        "publish": {
+          "pushed": true,
+          "ahead": 1,
+          "reason": ""
+        }
+      },
+      "_stream": "AU-20260729T055205Z-109bdd10-agent-events.jsonl"
     }
   ],
   "sessions": [
     {
       "pid": "761616",
-      "elapsed": "40:53",
+      "elapsed": "41:25",
       "req": "RQ-20260729T040046Z-0f28a578"
     }
   ],
